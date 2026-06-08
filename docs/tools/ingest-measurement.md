@@ -1,4 +1,4 @@
-# Tool: rew.ingest_measurement
+# Tool: rew_ingest_measurement
 
 Parses and stores REW measurement data for subsequent analysis.
 
@@ -9,7 +9,7 @@ Parses and stores REW measurement data for subsequent analysis.
 
 ```json
 {
-  "name": "rew.ingest_measurement",
+  "name": "rew_ingest_measurement",
   "title": "Ingest Measurement",
   "description": "Parse and store a REW measurement export for analysis. Accepts frequency response or impulse response data in REW text export format.",
   "inputSchema": {

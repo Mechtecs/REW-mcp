@@ -1,5 +1,5 @@
 /**
- * Tool: rew.api_check_levels
+ * Tool: rew_api_check_levels
  *
  * Check REW input levels for mic gain calibration.
  * Provides zone-based feedback (Clipping, Hot, Optimal, Low, Very Low) and guidance.
@@ -115,8 +115,8 @@ export async function executeApiCheckLevels(input: ApiCheckLevelsInput): Promise
       return {
         status: 'error',
         error_type: 'connection_error',
-        message: 'Not connected to REW API. Use rew.api_connect first.',
-        suggestion: 'Call rew.api_connect to establish connection'
+        message: 'Not connected to REW API. Use rew_api_connect first.',
+        suggestion: 'Call rew_api_connect to establish connection'
       };
     }
 
@@ -134,7 +134,7 @@ export async function executeApiCheckLevels(input: ApiCheckLevelsInput): Promise
           status: 'error',
           error_type: 'api_error',
           message: 'Failed to read input levels. Monitoring may not have started or no audio device is active.',
-          suggestion: 'Check that REW has an input device selected via rew.api_audio'
+          suggestion: 'Check that REW has an input device selected via rew_api_audio'
         };
       }
 

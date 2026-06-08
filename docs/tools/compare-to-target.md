@@ -1,4 +1,4 @@
-# rew.compare_to_target
+# rew_compare_to_target
 
 Compare a measurement against a target response curve.
 

@@ -1,5 +1,5 @@
 /**
- * Tool: rew.api_generator
+ * Tool: rew_api_generator
  * 
  * Control REW's signal generator via API.
  * Useful for generating test tones, pink noise, sweeps, etc.
@@ -54,8 +54,8 @@ export async function executeApiGenerator(input: ApiGeneratorInput): Promise<Too
       return {
         status: 'error',
         error_type: 'connection_error',
-        message: 'Not connected to REW API. Use rew.api_connect first.',
-        suggestion: 'Call rew.api_connect to establish connection'
+        message: 'Not connected to REW API. Use rew_api_connect first.',
+        suggestion: 'Call rew_api_connect to establish connection'
       };
     }
 

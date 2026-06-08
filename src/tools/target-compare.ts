@@ -1,5 +1,5 @@
 /**
- * Tool: rew.compare_to_target
+ * Tool: rew_compare_to_target
  * 
  * Compare a measurement against a target response curve.
  * Supports flat, house curves, and REW room curve with LF rise and HF fall.
@@ -146,7 +146,7 @@ export async function executeTargetCompare(input: TargetCompareInput): Promise<T
         status: 'error',
         error_type: 'measurement_not_found',
         message: `Measurement not found: ${validated.measurement_id}`,
-        suggestion: 'Use rew.ingest_measurement to load the measurement first'
+        suggestion: 'Use rew_ingest_measurement to load the measurement first'
       };
     }
 

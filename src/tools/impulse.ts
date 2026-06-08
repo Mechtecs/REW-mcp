@@ -1,5 +1,5 @@
 /**
- * Tool: rew.analyze_impulse
+ * Tool: rew_analyze_impulse
  * 
  * Analyzes impulse response for early reflections.
  */

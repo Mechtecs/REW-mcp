@@ -8,17 +8,17 @@ Run the iterative room optimization loop. The core principle is: one change at a
 
 ## Initialization
 
-Call `rew.api_connect` with default parameters. If connection fails, stop and tell the user to launch REW with the API enabled.
+Call `rew_api_connect` with default parameters. If connection fails, stop and tell the user to launch REW with the API enabled.
 
-Check for an active measurement session by calling `rew.api_measurement_session` with action `get_status`. If a session exists, use it. If not, tell the user to run `/rew:calibrate` or `/rew:analyze` first so measurements are available, then stop.
+Check for an active measurement session by calling `rew_api_measurement_session` with action `get_status`. If a session exists, use it. If not, tell the user to run `/rew:calibrate` or `/rew:analyze` first so measurements are available, then stop.
 
-Call `rew.api_list_measurements` to see what measurements are available. Identify the most recent L/R/Sub measurements.
+Call `rew_api_list_measurements` to see what measurements are available. Identify the most recent L/R/Sub measurements.
 
 ## Optimization Loop
 
 ### 1. Get Recommendation
 
-Call `rew.optimize_room` with action `get_recommendation` and the current primary measurement ID. Include `left_measurement_id`, `right_measurement_id`, and `sub_measurement_id` if available.
+Call `rew_optimize_room` with action `get_recommendation` and the current primary measurement ID. Include `left_measurement_id`, `right_measurement_id`, and `sub_measurement_id` if available.
 
 Present the recommendation to the user:
 - **What to change**: the specific action (e.g., "Move left monitor 6 inches away from side wall")
@@ -33,13 +33,13 @@ Tell the user to make this single physical change now. Wait for them to confirm 
 
 After the user confirms the change, guide a re-measurement:
 
-1. Call `rew.api_check_levels` to verify the mic is still getting good signal. If levels have changed (e.g., mic was bumped), address before proceeding.
-2. Call `rew.api_measurement_session` with action `measure` for the relevant channel(s). At minimum, re-measure the channel affected by the change.
-3. Call `rew.api_measurement_session` with action `get_status` to confirm the new measurement was captured.
+1. Call `rew_api_check_levels` to verify the mic is still getting good signal. If levels have changed (e.g., mic was bumped), address before proceeding.
+2. Call `rew_api_measurement_session` with action `measure` for the relevant channel(s). At minimum, re-measure the channel affected by the change.
+3. Call `rew_api_measurement_session` with action `get_status` to confirm the new measurement was captured.
 
 ### 3. Validate Adjustment
 
-Call `rew.optimize_room` with action `validate_adjustment`. Provide:
+Call `rew_optimize_room` with action `validate_adjustment`. Provide:
 - `measurement_id`: the new (post-adjustment) measurement ID
 - `pre_measurement_id`: the previous measurement ID (before the adjustment)
 - `target_frequency_hz`: the frequency of the issue that was addressed
@@ -53,7 +53,7 @@ Present the validation result:
 
 ### 4. Check Progress
 
-Call `rew.optimize_room` with action `check_progress` and the latest measurement ID.
+Call `rew_optimize_room` with action `check_progress` and the latest measurement ID.
 
 Present the progress assessment:
 - Smoothness zone (how close to the +/-3 dB target)

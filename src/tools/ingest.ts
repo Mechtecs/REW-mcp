@@ -1,5 +1,5 @@
 /**
- * Tool: rew.ingest_measurement
+ * Tool: rew_ingest_measurement
  * 
  * Parses and stores REW measurement data.
  */

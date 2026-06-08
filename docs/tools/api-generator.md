@@ -1,4 +1,4 @@
-# rew.api_generator
+# rew_api_generator
 
 Control REW's signal generator via API.
 
@@ -8,8 +8,8 @@ Generate test signals including sine tones, pink noise, white noise, sweeps, and
 
 ## Prerequisites
 
-- Connected to REW API via `rew.api_connect`
-- Audio output device configured (see `rew.api_audio`)
+- Connected to REW API via `rew_api_connect`
+- Audio output device configured (see `rew_api_audio`)
 
 ## Input Schema
 
@@ -137,6 +137,6 @@ Set the frequency for tone signals.
 
 ## Related Tools
 
-- `rew.api_connect` - Connect to REW API
-- `rew.api_audio` - Configure audio devices
-- `rew.api_spl_meter` - Monitor output levels
+- `rew_api_connect` - Connect to REW API
+- `rew_api_audio` - Configure audio devices
+- `rew_api_spl_meter` - Monitor output levels

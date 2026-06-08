@@ -1,5 +1,5 @@
 /**
- * Tool: rew.api_import
+ * Tool: rew_api_import
  *
  * Import measurement data into REW via API.
  * Supports frequency response files/data, impulse response files/data, RTA files, and sweep recordings.
@@ -57,8 +57,8 @@ export async function executeApiImport(input: ApiImportInput): Promise<ToolRespo
       return {
         status: 'error',
         error_type: 'connection_error',
-        message: 'Not connected to REW API. Use rew.api_connect first.',
-        suggestion: 'Call rew.api_connect to establish connection'
+        message: 'Not connected to REW API. Use rew_api_connect first.',
+        suggestion: 'Call rew_api_connect to establish connection'
       };
     }
 

@@ -1,5 +1,5 @@
 /**
- * Tool: rew.api_measurement_eq
+ * Tool: rew_api_measurement_eq
  *
  * Manage per-measurement EQ settings via API.
  * Control equaliser, filters, target settings, and match-target for individual measurements.
@@ -58,8 +58,8 @@ export async function executeApiMeasurementEQ(input: ApiMeasurementEQInput): Pro
       return {
         status: 'error',
         error_type: 'connection_error',
-        message: 'Not connected to REW API. Use rew.api_connect first.',
-        suggestion: 'Call rew.api_connect to establish connection'
+        message: 'Not connected to REW API. Use rew_api_connect first.',
+        suggestion: 'Call rew_api_connect to establish connection'
       };
     }
 

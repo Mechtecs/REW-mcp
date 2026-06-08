@@ -101,17 +101,17 @@ Use diffusion when:
 
 Follow this sequence when treating a project studio, home studio, or small mixing room. Each step builds on the previous one. Measure with REW after each step to verify improvement before proceeding.
 
-1. **Bass trapping** -- Tri-corners, wall-wall corners, front wall behind speakers. This is the foundation. Without bass trapping, all other treatment decisions are compromised because the bass response is unreliable. Use `rew.analyze_room_modes` and `rew.analyze_decay` to evaluate bass performance after treatment.
+1. **Bass trapping** -- Tri-corners, wall-wall corners, front wall behind speakers. This is the foundation. Without bass trapping, all other treatment decisions are compromised because the bass response is unreliable. Use `rew_analyze_room_modes` and `rew_analyze_decay` to evaluate bass performance after treatment.
 
-2. **First reflection points** -- Side walls, ceiling, desk. Absorptive panels (4"+ thick). Use `rew.analyze_impulse` to verify reduction in early reflection levels. C80 should improve; ITD gap should increase.
+2. **First reflection points** -- Side walls, ceiling, desk. Absorptive panels (4"+ thick). Use `rew_analyze_impulse` to verify reduction in early reflection levels. C80 should improve; ITD gap should increase.
 
-3. **Rear wall** -- Absorption, diffusion, or combination depending on distance from listener. Use `rew.analyze_impulse` to verify the rear wall reflection is controlled.
+3. **Rear wall** -- Absorption, diffusion, or combination depending on distance from listener. Use `rew_analyze_impulse` to verify the rear wall reflection is controlled.
 
 4. **Ceiling cloud** -- Broadband absorber above the listening position. Particularly important in rooms with hard ceilings (drywall, concrete).
 
-5. **Side walls** (remaining area) -- Additional absorption to control RT60. Aim for 30--40% coverage. Use `rew.analyze_decay` to verify decay times are within target.
+5. **Side walls** (remaining area) -- Additional absorption to control RT60. Aim for 30--40% coverage. Use `rew_analyze_decay` to verify decay times are within target.
 
-6. **Fine-tuning** -- Adjust treatment density and placement based on measurements. Use `rew.compare_to_target` to evaluate against the chosen target curve. Run GLM calibration after all physical treatment is complete.
+6. **Fine-tuning** -- Adjust treatment density and placement based on measurements. Use `rew_compare_to_target` to evaluate against the chosen target curve. Run GLM calibration after all physical treatment is complete.
 
 ## Common Mistakes
 
@@ -119,13 +119,13 @@ Follow this sequence when treating a project studio, home studio, or small mixin
 
 **Ignoring bass entirely** -- Some treatments focus exclusively on first reflections with 2" panels, ignoring the fundamental bass problems. The resulting room may have good imaging but wildly inaccurate bass response. Bass trapping is the foundation.
 
-**Symmetric treatment for asymmetric rooms** -- If the room is asymmetric (speaker closer to one side wall than the other, window on one side, door on the other), symmetric treatment does not produce symmetric acoustic behavior. Treat based on measured need, not geometric symmetry. Use `rew.analyze_room` with L/R measurements to identify asymmetric behavior.
+**Symmetric treatment for asymmetric rooms** -- If the room is asymmetric (speaker closer to one side wall than the other, window on one side, door on the other), symmetric treatment does not produce symmetric acoustic behavior. Treat based on measured need, not geometric symmetry. Use `rew_analyze_room` with L/R measurements to identify asymmetric behavior.
 
 **Placing diffusion at first reflection points** -- As noted above, diffusers at first reflection points scatter rather than remove the reflection, potentially worsening comb filtering. Absorb at first reflection points; diffuse at the rear wall and distant surfaces.
 
 **Insufficient air gap** -- Mounting absorbers flat against the wall wastes their low-frequency potential. A 4" panel with a 4" air gap provides significantly more bass absorption than the same panel mounted flush. Use standoffs, furring strips, or Z-clips to create an air gap behind all wall-mounted absorbers.
 
-**Treating based on rules of thumb instead of measurements** -- Generic advice (e.g., "put bass traps in every corner") may not address the specific problems in a given room. Measure first with REW, identify the specific frequencies and locations of problems, treat those problems, then re-measure. The `rew.optimize_room` tool provides measurement-driven recommendations following a scientific approach: suggest, measure, evaluate, then next.
+**Treating based on rules of thumb instead of measurements** -- Generic advice (e.g., "put bass traps in every corner") may not address the specific problems in a given room. Measure first with REW, identify the specific frequencies and locations of problems, treat those problems, then re-measure. The `rew_optimize_room` tool provides measurement-driven recommendations following a scientific approach: suggest, measure, evaluate, then next.
 
 ## DIY vs Commercial Panels
 
@@ -167,18 +167,18 @@ RT60 (reverberation time -- time for sound to decay by 60 dB) varies with freque
 | 4 kHz | 0.2--0.3 s | 0.2--0.3 s |
 
 Key principles:
-- **Overall target: 0.2--0.4 seconds** for small mixing rooms. Use `rew.analyze_decay` with `decay_threshold_seconds: 0.4` to identify frequencies exceeding this target.
-- **Flat decay curve** -- RT60 should be roughly uniform across frequency bands. A room with 0.2 s RT60 at 2 kHz but 0.8 s at 80 Hz has a severe bass trapping deficiency. The `rew.analyze_decay` tool reports per-band decay and flags uneven decay profiles.
+- **Overall target: 0.2--0.4 seconds** for small mixing rooms. Use `rew_analyze_decay` with `decay_threshold_seconds: 0.4` to identify frequencies exceeding this target.
+- **Flat decay curve** -- RT60 should be roughly uniform across frequency bands. A room with 0.2 s RT60 at 2 kHz but 0.8 s at 80 Hz has a severe bass trapping deficiency. The `rew_analyze_decay` tool reports per-band decay and flags uneven decay profiles.
 - **Not too dry** -- RT60 below 0.15 s at mid/high frequencies makes the room sound dead and fatiguing. If side wall treatment brings mid-frequency RT60 below 0.2 s, reduce absorptive coverage or replace some absorption with diffusion.
 - **Bass-to-mid ratio** -- Ideally, bass RT60 should be no more than 1.5x the mid-frequency RT60. A ratio above 2x indicates insufficient bass trapping.
 
 ### When to Stop Treating
 
 Stop adding treatment when:
-- RT60 is within the target range across all frequency bands (verify with `rew.analyze_decay`)
+- RT60 is within the target range across all frequency bands (verify with `rew_analyze_decay`)
 - The bass-to-mid RT60 ratio is below 1.5x
-- `rew.compare_to_target` shows the response is within 6 dB of the chosen target curve across all bands
-- `rew.optimize_room` with `check_progress` action reports "should_stop" or the smoothness criterion reaches the "good" zone
+- `rew_compare_to_target` shows the response is within 6 dB of the chosen target curve across all bands
+- `rew_optimize_room` with `check_progress` action reports "should_stop" or the smoothness criterion reaches the "good" zone
 - Subjective listening confirms the room sounds controlled but not dead -- transients are clean, stereo imaging is stable, and bass notes are defined rather than boomy or ringing
 
-Avoid the temptation to continue adding treatment in pursuit of perfection. Diminishing returns set in quickly once the major problems are addressed. At that point, speaker and listener positioning (guided by `rew.optimize_room`) and GLM calibration provide more return than additional treatment.
+Avoid the temptation to continue adding treatment in pursuit of perfection. Diminishing returns set in quickly once the major problems are addressed. At that point, speaker and listener positioning (guided by `rew_optimize_room`) and GLM calibration provide more return than additional treatment.

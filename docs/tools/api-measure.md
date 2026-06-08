@@ -1,4 +1,4 @@
-# rew.api_measure
+# rew_api_measure
 
 Control REW measurements via API.
 
@@ -10,8 +10,8 @@ Execute and configure REW measurements remotely. Supports sweep measurements, SP
 
 ## Prerequisites
 
-- Connected to REW API via `rew.api_connect`
-- Audio devices configured (see `rew.api_audio`)
+- Connected to REW API via `rew_api_connect`
+- Audio devices configured (see `rew_api_audio`)
 - REW Pro license for sweep measurements
 
 ## Input Schema
@@ -105,7 +105,7 @@ Cancel an in-progress measurement.
 
 ## Related Tools
 
-- `rew.api_connect` - Connect to REW API
-- `rew.api_audio` - Configure audio devices
-- `rew.api_generator` - Control signal generator
-- `rew.api_spl_meter` - SPL meter for level monitoring
+- `rew_api_connect` - Connect to REW API
+- `rew_api_audio` - Configure audio devices
+- `rew_api_generator` - Control signal generator
+- `rew_api_spl_meter` - SPL meter for level monitoring

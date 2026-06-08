@@ -1,5 +1,5 @@
 /**
- * Tool: rew.interpret_with_glm_context
+ * Tool: rew_interpret_with_glm_context
  * 
  * Interprets analysis results with Genelec GLM context.
  */

@@ -13,7 +13,7 @@ This document provides example LLM interaction patterns and expected MCP server 
 
 ```json
 {
-  "tool": "rew.ingest_measurement",
+  "tool": "rew_ingest_measurement",
   "arguments": {
     "file_contents": "* Measurement data saved by REW V5.31\n* Source: Measurement 1\n...",
     "metadata": {
@@ -63,7 +63,7 @@ This document provides example LLM interaction patterns and expected MCP server 
 
 ```json
 {
-  "tool": "rew.compare_measurements",
+  "tool": "rew_compare_measurements",
   "arguments": {
     "measurement_ids": ["meas_pre_glm_L", "meas_post_glm_L"],
     "comparison_type": "before_after"
@@ -151,7 +151,7 @@ This document provides example LLM interaction patterns and expected MCP server 
 
 ```json
 {
-  "tool": "rew.interpret_with_glm_context",
+  "tool": "rew_interpret_with_glm_context",
   "arguments": {
     "comparison_id": "comp_001"
   }
@@ -221,7 +221,7 @@ This document provides example LLM interaction patterns and expected MCP server 
 
 ```json
 {
-  "tool": "rew.analyze_room_modes",
+  "tool": "rew_analyze_room_modes",
   "arguments": {
     "measurement_id": "meas_pre_glm_L",
     "room_dimensions_m": {
@@ -338,7 +338,7 @@ This document provides example LLM interaction patterns and expected MCP server 
 
 ```json
 {
-  "tool": "rew.compare_measurements",
+  "tool": "rew_compare_measurements",
   "arguments": {
     "measurement_ids": ["meas_placement_A", "meas_placement_B"],
     "comparison_type": "placement_comparison"
@@ -424,7 +424,7 @@ This document provides example LLM interaction patterns and expected MCP server 
 
 ```json
 {
-  "tool": "rew.analyze_impulse",
+  "tool": "rew_analyze_impulse",
   "arguments": {
     "measurement_id": "meas_with_ir"
   }
@@ -509,7 +509,7 @@ This document provides example LLM interaction patterns and expected MCP server 
 
 ```json
 {
-  "tool": "rew.analyze_decay",
+  "tool": "rew_analyze_decay",
   "arguments": {
     "measurement_id": "meas_with_waterfall",
     "frequency_range_hz": [30, 200]

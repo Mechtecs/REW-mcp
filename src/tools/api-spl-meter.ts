@@ -1,5 +1,5 @@
 /**
- * Tool: rew.api_spl_meter
+ * Tool: rew_api_spl_meter
  * 
  * Control REW's SPL meter via API.
  * Useful for live level monitoring with various weightings (A, C, Z).
@@ -64,8 +64,8 @@ export async function executeApiSPLMeter(input: ApiSPLMeterInput): Promise<ToolR
       return {
         status: 'error',
         error_type: 'connection_error',
-        message: 'Not connected to REW API. Use rew.api_connect first.',
-        suggestion: 'Call rew.api_connect to establish connection'
+        message: 'Not connected to REW API. Use rew_api_connect first.',
+        suggestion: 'Call rew_api_connect to establish connection'
       };
     }
 

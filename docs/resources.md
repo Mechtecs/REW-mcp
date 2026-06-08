@@ -71,7 +71,7 @@ Returns session progress without embedding full frequency-response arrays.
 
 ### `measurement://{measurement_id}`
 
-Returns stored frequency-response data and metadata for a measurement created through `rew.ingest_measurement` or related workflows.
+Returns stored frequency-response data and metadata for a measurement created through `rew_ingest_measurement` or related workflows.
 
 ```json
 {
@@ -121,5 +121,5 @@ Example request:
 
 ## Notes
 
-- Resources are read-only; use tools such as `rew.ingest_measurement`, `rew.api_get_measurement`, or `rew.api_measurement_session` to create data.
+- Resources are read-only; use tools such as `rew_ingest_measurement`, `rew_api_get_measurement`, or `rew_api_measurement_session` to create data.
 - Measurements appear in `resources/list` after they have been stored by the server.

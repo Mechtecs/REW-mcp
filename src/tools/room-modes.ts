@@ -1,5 +1,5 @@
 /**
- * Tool: rew.analyze_room_modes
+ * Tool: rew_analyze_room_modes
  * 
  * Analyzes measurement for room modes, peaks, and nulls.
  */
@@ -73,7 +73,7 @@ export async function executeRoomModes(input: RoomModesInput): Promise<ToolRespo
         status: 'error',
         error_type: 'measurement_not_found',
         message: `Measurement with ID '${validated.measurement_id}' not found`,
-        suggestion: 'Use rew.ingest_measurement first, or list measurements with the resources API'
+        suggestion: 'Use rew_ingest_measurement first, or list measurements with the resources API'
       };
     }
     

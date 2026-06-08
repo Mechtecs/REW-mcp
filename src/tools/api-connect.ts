@@ -1,5 +1,5 @@
 /**
- * Tool: rew.api_connect
+ * Tool: rew_api_connect
  * 
  * Connect to a running REW instance's REST API.
  * REW must be launched with -api flag or have API enabled in preferences.

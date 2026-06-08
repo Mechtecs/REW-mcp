@@ -45,7 +45,7 @@ describe('executeApiGenerator', () => {
       expect(result.status).toBe('error');
       expect(result.error_type).toBe('connection_error');
       expect(result.message).toContain('Not connected to REW API');
-      expect(result.suggestion).toContain('rew.api_connect');
+      expect(result.suggestion).toContain('rew_api_connect');
     });
   });
 

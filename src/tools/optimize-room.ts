@@ -1,5 +1,5 @@
 /**
- * Tool: rew.optimize_room
+ * Tool: rew_optimize_room
  *
  * Multi-action optimization guidance tool providing recommendations,
  * validation, and progress tracking for room optimization workflow.
@@ -155,7 +155,7 @@ async function getRecommendation(
     return {
       status: 'error',
       error_type: 'measurement_not_found',
-      message: `Measurement '${input.measurement_id}' not found. Use rew.api_measurement_session get_status to list available measurements.`
+      message: `Measurement '${input.measurement_id}' not found. Use rew_api_measurement_session get_status to list available measurements.`
     };
   }
 

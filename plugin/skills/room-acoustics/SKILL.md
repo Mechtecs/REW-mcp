@@ -15,7 +15,7 @@ Room modes are standing waves that form when sound reflects between parallel sur
 
 Three types exist, in decreasing order of energy:
 
-- **Axial modes** -- involve two parallel surfaces (one dimension). Strongest and most audible. Calculate as `f = n * c / (2 * L)` where `n` is the mode order, `c` is the speed of sound, and `L` is the dimension in meters. The REW MCP `rew.analyze_room_modes` tool computes these automatically.
+- **Axial modes** -- involve two parallel surfaces (one dimension). Strongest and most audible. Calculate as `f = n * c / (2 * L)` where `n` is the mode order, `c` is the speed of sound, and `L` is the dimension in meters. The REW MCP `rew_analyze_room_modes` tool computes these automatically.
 - **Tangential modes** -- involve four surfaces (two dimensions). Roughly half the energy of axial modes. Calculate as `f = (c/2) * sqrt((n1/L1)^2 + (n2/L2)^2)`.
 - **Oblique modes** -- involve all six surfaces (three dimensions). Weakest and typically negligible below 200 Hz. Only relevant when modal density is very low.
 
@@ -23,15 +23,15 @@ Three types exist, in decreasing order of energy:
 
 Look for these signatures in REW frequency response data:
 
-- **Narrow peaks** (high Q) in the 20--200 Hz range that correlate with theoretical mode frequencies for the room dimensions. Use `rew.analyze_room_modes` with `room_dimensions_m` to get automatic correlation.
+- **Narrow peaks** (high Q) in the 20--200 Hz range that correlate with theoretical mode frequencies for the room dimensions. Use `rew_analyze_room_modes` with `room_dimensions_m` to get automatic correlation.
 - **Mode clusters** -- multiple modes within 5 Hz of each other. These reinforce and create exaggerated peaks. The analysis engine flags clusters of three or more modes.
 - **Mode gaps** -- frequency ranges with no modal support (>15 Hz gap). These create thin-sounding regions that no amount of EQ can fix. Gaps exceeding 30 Hz are significant.
 
 ### When to Worry
 
-Focus on modes below 200 Hz. Above the Schroeder frequency, modal density is high enough that the room behaves statistically and individual modes are not a concern. Prioritize peaks exceeding 5 dB deviation and nulls exceeding -6 dB, which are the default thresholds in `rew.analyze_room_modes`.
+Focus on modes below 200 Hz. Above the Schroeder frequency, modal density is high enough that the room behaves statistically and individual modes are not a concern. Prioritize peaks exceeding 5 dB deviation and nulls exceeding -6 dB, which are the default thresholds in `rew_analyze_room_modes`.
 
-Modes with high Q (>10) are more audible and create longer ringing. Cross-reference with `rew.analyze_decay` results -- if a peak at 63 Hz also shows elevated T60, that mode is actively ringing and producing audible coloration.
+Modes with high Q (>10) are more audible and create longer ringing. Cross-reference with `rew_analyze_decay` results -- if a peak at 63 Hz also shows elevated T60, that mode is actively ringing and producing audible coloration.
 
 ## SBIR (Speaker Boundary Interference Response)
 
@@ -54,7 +54,7 @@ Common SBIR null frequencies by distance:
 
 ### How Distance Creates Nulls
 
-Each boundary (rear wall, side wall, ceiling, floor, desk surface) creates its own SBIR null at a frequency determined by the driver-to-boundary distance. Multiple boundaries create multiple nulls. The `rew.analyze_room` tool's peaks/nulls section classifies SBIR nulls using Q-factor analysis -- narrow, deep nulls with high Q (>5) at frequencies consistent with boundary distances are flagged as SBIR candidates.
+Each boundary (rear wall, side wall, ceiling, floor, desk surface) creates its own SBIR null at a frequency determined by the driver-to-boundary distance. Multiple boundaries create multiple nulls. The `rew_analyze_room` tool's peaks/nulls section classifies SBIR nulls using Q-factor analysis -- narrow, deep nulls with high Q (>5) at frequencies consistent with boundary distances are flagged as SBIR candidates.
 
 SBIR nulls are particularly problematic because:
 - They **cannot** be corrected by EQ or GLM. Boosting at a null frequency wastes amplifier headroom and heats the voice coil without producing useful output at the listening position.
@@ -69,7 +69,7 @@ Move the speaker closer to or farther from the boundary. Flush-mounting (soffit 
 
 ### First Reflections
 
-First-order reflections arrive at the listening position after a single bounce off a room surface. They are the strongest reflections and most damaging to stereo imaging and frequency response accuracy. Identify them using `rew.analyze_impulse` -- reflections arriving within 0--20 ms of the direct sound with relative levels above -15 dB are the primary concern.
+First-order reflections arrive at the listening position after a single bounce off a room surface. They are the strongest reflections and most damaging to stereo imaging and frequency response accuracy. Identify them using `rew_analyze_impulse` -- reflections arriving within 0--20 ms of the direct sound with relative levels above -15 dB are the primary concern.
 
 The mirror-source method determines first reflection points: imagine a mirror on each wall surface. If the speaker is visible in the mirror from the listening position, that point is a first reflection point. Typical surfaces to treat: side walls (most critical), ceiling, desk/console surface, front wall behind monitors.
 
@@ -81,7 +81,7 @@ Detect flutter echo by looking for repeated reflections at regular intervals in 
 
 ### Comb Filtering
 
-When a reflection arrives with sufficient level and a short delay, it creates a comb filter pattern -- alternating peaks and nulls at harmonically related frequencies. The first null occurs at `f = c / (2 * path_difference)`. The `rew.analyze_impulse` tool calculates comb filter frequencies for each detected reflection.
+When a reflection arrives with sufficient level and a short delay, it creates a comb filter pattern -- alternating peaks and nulls at harmonically related frequencies. The first null occurs at `f = c / (2 * path_difference)`. The `rew_analyze_impulse` tool calculates comb filter frequencies for each detected reflection.
 
 Comb filtering from desk reflections is extremely common in near-field monitoring setups. The desk surface creates a strong reflection with a short path difference, producing nulls in the 100--400 Hz range that degrade low-mid accuracy.
 
@@ -95,7 +95,7 @@ The Schroeder frequency marks the boundary between the modal region (where indiv
 f_schroeder = 2000 * sqrt(RT60 / V)
 ```
 
-where `RT60` is the reverberation time in seconds and `V` is the room volume in cubic meters. The `rew.analyze_room_modes` tool computes this automatically when room dimensions are provided.
+where `RT60` is the reverberation time in seconds and `V` is the room volume in cubic meters. The `rew_analyze_room_modes` tool computes this automatically when room dimensions are provided.
 
 For a typical small studio room (40 m^3, RT60 = 0.3 s):
 - Schroeder frequency: ~173 Hz
@@ -104,8 +104,8 @@ Below the Schroeder frequency, treat the room as a collection of discrete resona
 
 ### Practical Implications
 
-- Below Schroeder: focus on modal analysis, speaker/listener placement optimization, and bass trapping. Use `rew.analyze_room_modes` and `rew.optimize_room` for guidance.
-- Above Schroeder: focus on reflection control, broadband absorption, and EQ/GLM correction. Use `rew.analyze_impulse` and `rew.compare_to_target` for evaluation.
+- Below Schroeder: focus on modal analysis, speaker/listener placement optimization, and bass trapping. Use `rew_analyze_room_modes` and `rew_optimize_room` for guidance.
+- Above Schroeder: focus on reflection control, broadband absorption, and EQ/GLM correction. Use `rew_analyze_impulse` and `rew_compare_to_target` for evaluation.
 - At the transition: problems here are the hardest to solve. Both modal and statistical behaviors overlap.
 
 ## Target Curves
@@ -114,7 +114,7 @@ Below the Schroeder frequency, treat the room as a collection of discrete resona
 
 A measurement microphone captures the direct sound plus all room reflections. In a real room, a truly flat direct-sound response from a speaker produces a measured response that rises in the bass (room gain from boundaries) and falls in the treble (air absorption, increased directivity). A "flat" measured response would actually mean the speaker is deficient in the bass and overly bright.
 
-The `rew.compare_to_target` tool supports several built-in target curves:
+The `rew_compare_to_target` tool supports several built-in target curves:
 
 - **Flat** -- 0 dB reference. Useful for anechoic comparison only.
 - **REW Room Curve** -- +6 dB at 20 Hz tapering to 0 dB at 200 Hz, then -6 dB at 20 kHz. Represents expected in-room behavior of a well-calibrated system.
@@ -133,22 +133,22 @@ The high-frequency rolloff accounts for:
 - Air absorption at very high frequencies
 - Listener preference (research consistently shows slight HF rolloff is preferred)
 
-When evaluating measurements against a target, use `rew.compare_to_target` with the `rew_room_curve` or `harman` target type. Deviations exceeding 6 dB from the chosen target in any frequency band warrant investigation.
+When evaluating measurements against a target, use `rew_compare_to_target` with the `rew_room_curve` or `harman` target type. Deviations exceeding 6 dB from the chosen target in any frequency band warrant investigation.
 
 ## Quick Reference: Common Problem Frequencies and Likely Causes
 
 | Symptom | Likely Cause | Tool to Investigate |
 |---------|-------------|-------------------|
-| Broad peak 30--80 Hz | Room mode (axial, length dimension) | `rew.analyze_room_modes` |
-| Narrow null 60--150 Hz | SBIR from rear wall | `rew.analyze_room` (peaks_nulls section) |
-| Null at ~143 Hz | Speaker 0.6 m from wall (SBIR) | `rew.analyze_room` |
-| Comb pattern 100--400 Hz | Desk reflection | `rew.analyze_impulse` |
-| Ringing at specific Hz | Room mode with long decay | `rew.analyze_decay` |
-| L/R imbalance below 200 Hz | Asymmetric speaker placement | `rew.analyze_room` (lr_symmetry section) |
-| Dip at sub crossover | Phase/polarity mismatch | `rew.analyze_room` (sub_integration section) |
-| Deep null, GLM cannot fix | SBIR or mode cancellation | `rew.interpret_with_glm_context` |
-| Response above target >6 dB | Untreated room mode or boundary gain | `rew.compare_to_target` |
-| Excessive decay below 100 Hz | Insufficient bass trapping | `rew.analyze_decay` |
+| Broad peak 30--80 Hz | Room mode (axial, length dimension) | `rew_analyze_room_modes` |
+| Narrow null 60--150 Hz | SBIR from rear wall | `rew_analyze_room` (peaks_nulls section) |
+| Null at ~143 Hz | Speaker 0.6 m from wall (SBIR) | `rew_analyze_room` |
+| Comb pattern 100--400 Hz | Desk reflection | `rew_analyze_impulse` |
+| Ringing at specific Hz | Room mode with long decay | `rew_analyze_decay` |
+| L/R imbalance below 200 Hz | Asymmetric speaker placement | `rew_analyze_room` (lr_symmetry section) |
+| Dip at sub crossover | Phase/polarity mismatch | `rew_analyze_room` (sub_integration section) |
+| Deep null, GLM cannot fix | SBIR or mode cancellation | `rew_interpret_with_glm_context` |
+| Response above target >6 dB | Untreated room mode or boundary gain | `rew_compare_to_target` |
+| Excessive decay below 100 Hz | Insufficient bass trapping | `rew_analyze_decay` |
 
 ## References
 

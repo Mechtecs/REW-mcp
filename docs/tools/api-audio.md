@@ -1,4 +1,4 @@
-# rew.api_audio
+# rew_api_audio
 
 Configure REW audio devices via API.
 
@@ -8,7 +8,7 @@ Configure input and output audio devices, sample rates, and view current audio s
 
 ## Prerequisites
 
-- Connected to REW API via `rew.api_connect`
+- Connected to REW API via `rew_api_connect`
 
 ## Input Schema
 
@@ -117,6 +117,6 @@ Set the audio sample rate.
 
 ## Related Tools
 
-- `rew.api_connect` - Connect to REW API
-- `rew.api_measure` - Control measurements
-- `rew.api_generator` - Control signal generator
+- `rew_api_connect` - Connect to REW API
+- `rew_api_measure` - Control measurements
+- `rew_api_generator` - Control signal generator

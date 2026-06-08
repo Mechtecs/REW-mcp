@@ -1,5 +1,5 @@
 /**
- * Tool: rew.api_calibrate_spl
+ * Tool: rew_api_calibrate_spl
  *
  * Semi-automated SPL calibration workflow for monitor level setting.
  * Plays pink noise, reads SPL meter, guides user to target level.
@@ -58,8 +58,8 @@ export async function executeApiCalibrateSPL(input: ApiCalibrateSPLInput): Promi
       return {
         status: 'error',
         error_type: 'connection_error',
-        message: 'Not connected to REW API. Use rew.api_connect first.',
-        suggestion: 'Call rew.api_connect to establish connection'
+        message: 'Not connected to REW API. Use rew_api_connect first.',
+        suggestion: 'Call rew_api_connect to establish connection'
       };
     }
 

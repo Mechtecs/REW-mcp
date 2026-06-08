@@ -1,5 +1,5 @@
 /**
- * Tool: rew.average_measurements
+ * Tool: rew_average_measurements
  * 
  * Create a spatial average from multiple measurement positions.
  * Implements REW's averaging methods: RMS (incoherent, ignores phase),
@@ -84,7 +84,7 @@ export async function executeAveraging(input: AveragingInput): Promise<ToolRespo
         status: 'error',
         error_type: 'measurement_not_found',
         message: `Measurements not found: ${missingIds.join(', ')}`,
-        suggestion: 'Use rew.ingest_measurement to load measurements first'
+        suggestion: 'Use rew_ingest_measurement to load measurements first'
       };
     }
 

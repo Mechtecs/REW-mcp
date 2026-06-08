@@ -1,4 +1,4 @@
-# Tool: rew.compare_measurements
+# Tool: rew_compare_measurements
 
 Compares two or more measurements to identify improvements, regressions, and unchanged characteristics.
 
@@ -9,7 +9,7 @@ Compares two or more measurements to identify improvements, regressions, and unc
 
 ```json
 {
-  "name": "rew.compare_measurements",
+  "name": "rew_compare_measurements",
   "title": "Compare Measurements",
   "description": "Compare two or more REW measurements to determine what improved, worsened, or stayed the same. Supports pre/post GLM comparison, placement comparisons, and L/R symmetry analysis.",
   "inputSchema": {

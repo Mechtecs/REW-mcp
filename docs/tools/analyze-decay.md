@@ -1,4 +1,4 @@
-# Tool: rew.analyze_decay
+# Tool: rew_analyze_decay
 
 Analyzes waterfall/spectrogram data to identify frequencies with problematic decay times.
 
@@ -9,7 +9,7 @@ Analyzes waterfall/spectrogram data to identify frequencies with problematic dec
 
 ```json
 {
-  "name": "rew.analyze_decay",
+  "name": "rew_analyze_decay",
   "title": "Analyze Decay",
   "description": "Analyze decay characteristics from waterfall or spectrogram data to identify frequencies with excessive ringing or resonance.",
   "inputSchema": {

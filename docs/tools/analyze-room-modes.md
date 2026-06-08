@@ -1,4 +1,4 @@
-# Tool: rew.analyze_room_modes
+# Tool: rew_analyze_room_modes
 
 Detects peaks, nulls, and correlates them with theoretical room modes.
 
@@ -9,7 +9,7 @@ Detects peaks, nulls, and correlates them with theoretical room modes.
 
 ```json
 {
-  "name": "rew.analyze_room_modes",
+  "name": "rew_analyze_room_modes",
   "title": "Analyze Room Modes",
   "description": "Analyze a measurement for room modes, peaks, and nulls. Optionally correlates detected issues with theoretical room modes based on room dimensions.",
   "inputSchema": {
