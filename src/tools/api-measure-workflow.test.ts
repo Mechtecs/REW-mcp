@@ -64,7 +64,7 @@ describe('executeApiMeasureWorkflow', () => {
       expect(result.status).toBe('error');
       expect(result.error_type).toBe('connection_error');
       expect(result.message).toContain('Not connected to REW API');
-      expect(result.suggestion).toContain('rew.api_connect');
+      expect(result.suggestion).toContain('rew_api_connect');
     });
   });
 
@@ -662,7 +662,7 @@ describe('executeApiMeasureWorkflow', () => {
       const result = await promise;
 
       expect(result.data?.levels?.recommendation).toContain('SPL meter not running');
-      expect(result.data?.levels?.recommendation).toContain('rew.api_spl_meter');
+      expect(result.data?.levels?.recommendation).toContain('rew_api_spl_meter');
     });
 
     it('should stop generator after calibration', async () => {

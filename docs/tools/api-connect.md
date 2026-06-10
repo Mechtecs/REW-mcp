@@ -1,4 +1,4 @@
-# rew.api_connect
+# rew_api_connect
 
 Connect to a running REW instance's REST API.
 
@@ -100,8 +100,8 @@ You can verify the API is working by opening a browser to:
 
 ## Related Tools
 
-- `rew.api_list_measurements` - List available measurements
-- `rew.api_get_measurement` - Fetch specific measurement
+- `rew_api_list_measurements` - List available measurements
+- `rew_api_get_measurement` - Fetch specific measurement
 
 ## Reference
 

@@ -15,11 +15,11 @@ GLM addresses four domains:
 
 ### What GLM Cannot Fix
 
-Understand these fundamental limitations before interpreting GLM results. The `rew.interpret_with_glm_context` and `rew.analyze_room` tools classify issues into "GLM addressable" and "beyond GLM scope" categories based on these physics:
+Understand these fundamental limitations before interpreting GLM results. The `rew_interpret_with_glm_context` and `rew_analyze_room` tools classify issues into "GLM addressable" and "beyond GLM scope" categories based on these physics:
 
 **Room modes below the Schroeder frequency** -- GLM can reduce the peaks of room modes (cut the resonance), but the underlying standing wave pattern remains. The null points of room modes are completely beyond GLM's reach. At frequencies where the room naturally cancels the sound, no amount of electronic correction can produce output. GLM's cut-only approach means it can tame the peaks but the modal pattern (peaks AND nulls) persists.
 
-**SBIR nulls** -- Quarter-wavelength cancellation from boundary reflections creates nulls that are acoustic in nature. The direct sound and reflected sound destructively interfere at the listening position. GLM cannot boost to fill these nulls, and even if it could, the cancellation would simply consume the additional output. The `rew.analyze_room` tool flags deep nulls (>10 dB) as "beyond GLM scope" for this reason.
+**SBIR nulls** -- Quarter-wavelength cancellation from boundary reflections creates nulls that are acoustic in nature. The direct sound and reflected sound destructively interfere at the listening position. GLM cannot boost to fill these nulls, and even if it could, the cancellation would simply consume the additional output. The `rew_analyze_room` tool flags deep nulls (>10 dB) as "beyond GLM scope" for this reason.
 
 **Reflections** -- GLM operates on the steady-state frequency response. It cannot selectively remove individual reflections from the impulse response. Early reflections that cause comb filtering, imaging degradation, and coloration remain unchanged after GLM calibration. The reflection pattern is determined by room geometry and surface properties -- only physical treatment (absorption, diffusion) addresses reflections.
 
@@ -38,7 +38,7 @@ The standard GLM workflow:
 1. **Connect all SAM speakers** to the GLM network via the GLM adapter or Ethernet. Verify all speakers are detected in GLM software.
 2. **Position the measurement microphone** at the primary listening position, at ear height. Use a stand, not a hand-held position. The microphone should face the ceiling (omnidirectional capsule pointing up) per Genelec's specification.
 3. **Run AutoCal** -- GLM sequentially measures each speaker, capturing the room+speaker response at the listening position. It then computes and uploads correction filters to each speaker's DSP.
-4. **Verify** -- Play reference material and evaluate. Use REW measurements (via `rew.api_measure`) to capture the post-GLM response independently for objective verification.
+4. **Verify** -- Play reference material and evaluate. Use REW measurements (via `rew_api_measure`) to capture the post-GLM response independently for objective verification.
 
 ### Manual Adjustment
 
@@ -46,23 +46,23 @@ After AutoCal, manual adjustments may be necessary:
 
 - **Bass roll-off** -- If the room has severe low-frequency problems, consider engaging the bass roll-off switch on the speaker to supplement GLM's correction. This is particularly useful when GLM's cut filters reach their maximum depth and the peak is still not fully controlled.
 - **Desktop mode / wall compensation** -- Enable the appropriate acoustic setting on the speaker if it is placed on a desk or near a wall. These settings apply broad shelving cuts that complement GLM's parametric corrections.
-- **Subwoofer level** -- After AutoCal, verify subwoofer integration with `rew.analyze_room` using the `sub_measurement_id` parameter. Adjust subwoofer level if the crossover region shows excess or deficiency.
+- **Subwoofer level** -- After AutoCal, verify subwoofer integration with `rew_analyze_room` using the `sub_measurement_id` parameter. Adjust subwoofer level if the crossover region shows excess or deficiency.
 - **Target level** -- GLM's target response is approximately flat with a slight room curve. Adjust the system reference level to match the desired monitoring SPL.
 
 ### Verification with REW
 
 After GLM calibration, verify the result with REW:
 
-1. Run `rew.api_measure` to capture a fresh measurement at the listening position.
-2. Use `rew.ingest_measurement` followed by `rew.analyze_room` to get a full analysis of the post-GLM state.
-3. If pre-GLM measurements exist, use `rew.analyze_room` with both `measurement_id` (post) and `pre_measurement_id` (pre) for full comparison analysis. The tool classifies each issue as "GLM success," "partial improvement," or "beyond GLM scope."
-4. Use `rew.compare_to_target` with `rew_room_curve` target type to evaluate how well the calibrated system matches the expected in-room response.
+1. Run `rew_api_measure` to capture a fresh measurement at the listening position.
+2. Use `rew_ingest_measurement` followed by `rew_analyze_room` to get a full analysis of the post-GLM state.
+3. If pre-GLM measurements exist, use `rew_analyze_room` with both `measurement_id` (post) and `pre_measurement_id` (pre) for full comparison analysis. The tool classifies each issue as "GLM success," "partial improvement," or "beyond GLM scope."
+4. Use `rew_compare_to_target` with `rew_room_curve` target type to evaluate how well the calibrated system matches the expected in-room response.
 
 ## Interpreting GLM Before/After
 
 ### What "GLM Addressed" Means
 
-The `rew.analyze_room` tool's GLM comparison section classifies corrections:
+The `rew_analyze_room` tool's GLM comparison section classifies corrections:
 
 - **Success (50%+ reduction)** -- The peak was reduced by at least half. GLM's parametric cut filter is working as designed. The frequency is now within or closer to the target window. Typical for moderate peaks (3--8 dB) at frequencies where the room mode is not too narrow.
 - **Partial improvement** -- Some reduction occurred but less than 50%. This may indicate the peak is wider than GLM's filter can fully address, or the peak is at the edge of GLM's correction range.
@@ -103,9 +103,9 @@ Do **not** re-run GLM:
 
 **Wrong listening position** -- The microphone must be at the exact listening position, at ear height. Measuring at a different position calibrates for the wrong point. Even 15 cm difference changes the SBIR pattern and mode excitation significantly.
 
-**Sub phase not verified** -- GLM aligns delay and level but may not fully optimize subwoofer phase. After AutoCal, verify sub integration with `rew.analyze_room` using the `sub_measurement_id` parameter. If the tool detects phase inversion or a crossover dip, manually adjust sub phase (0/180 switch) or sub delay, then re-run GLM.
+**Sub phase not verified** -- GLM aligns delay and level but may not fully optimize subwoofer phase. After AutoCal, verify sub integration with `rew_analyze_room` using the `sub_measurement_id` parameter. If the tool detects phase inversion or a crossover dip, manually adjust sub phase (0/180 switch) or sub delay, then re-run GLM.
 
-**Measuring with noise present** -- Background noise (HVAC, computer fans, external sources) contaminates the measurement. GLM's stimulus-to-noise ratio may be insufficient to accurately characterize the room response. Reduce background noise to at least 10 dB below the measurement level. Check with `rew.api_spl_meter` to verify ambient noise levels before calibrating.
+**Measuring with noise present** -- Background noise (HVAC, computer fans, external sources) contaminates the measurement. GLM's stimulus-to-noise ratio may be insufficient to accurately characterize the room response. Reduce background noise to at least 10 dB below the measurement level. Check with `rew_api_spl_meter` to verify ambient noise levels before calibrating.
 
 **Expecting GLM to fix everything** -- GLM is a calibration tool, not a replacement for acoustic treatment and proper speaker placement. If the room has severe modal problems, deep SBIR nulls, or strong early reflections, address those physically first. GLM refines the response after the physical setup is optimized. Treat the room, position the speakers, verify with REW, then run GLM, then verify again.
 

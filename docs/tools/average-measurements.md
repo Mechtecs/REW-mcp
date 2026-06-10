@@ -1,4 +1,4 @@
-# rew.average_measurements
+# rew_average_measurements
 
 Create a spatial average from multiple measurement positions.
 

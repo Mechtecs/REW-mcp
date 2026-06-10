@@ -1,5 +1,5 @@
 /**
- * Tool: rew.api_groups
+ * Tool: rew_api_groups
  *
  * Manage measurement groups via API.
  * Create, list, update, and delete groups, and manage group membership.
@@ -54,8 +54,8 @@ export async function executeApiGroups(input: ApiGroupsInput): Promise<ToolRespo
       return {
         status: 'error',
         error_type: 'connection_error',
-        message: 'Not connected to REW API. Use rew.api_connect first.',
-        suggestion: 'Call rew.api_connect to establish connection'
+        message: 'Not connected to REW API. Use rew_api_connect first.',
+        suggestion: 'Call rew_api_connect to establish connection'
       };
     }
 

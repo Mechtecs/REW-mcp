@@ -126,23 +126,23 @@ Prompts provide reusable workflow templates for common REW analysis tasks. They 
 # GLM Calibration Comparison Workflow
 
 ## Step 1: Ingest Pre-GLM Measurement
-Call `rew.ingest_measurement` with:
+Call `rew_ingest_measurement` with:
 - file_contents: {{pre_glm_file}}
 - metadata: { speaker_id: "{{speaker_id}}", condition: "pre_glm" }
 
 ## Step 2: Ingest Post-GLM Measurement
-Call `rew.ingest_measurement` with:
+Call `rew_ingest_measurement` with:
 - file_contents: {{post_glm_file}}
 - metadata: { speaker_id: "{{speaker_id}}", condition: "post_glm" }
 
 ## Step 3: Compare Measurements
-Call `rew.compare_measurements` with:
+Call `rew_compare_measurements` with:
 - measurement_ids: [pre_glm_id, post_glm_id]
 - comparison_type: "before_after"
 - reference_measurement_id: pre_glm_id
 
 ## Step 4: Interpret with GLM Context
-Call `rew.interpret_with_glm_context` with:
+Call `rew_interpret_with_glm_context` with:
 - comparison_id: (from step 3)
 
 ## Step 5: Summarize Findings
@@ -161,17 +161,17 @@ Remember: GLM uses cut-only correction and cannot address deep nulls or decay ti
 
 ## Step 1: Ingest All Placement Measurements
 For each placement file in {{placement_files}}:
-Call `rew.ingest_measurement` with:
+Call `rew_ingest_measurement` with:
 - file_contents: (file content)
 - metadata: { speaker_id: "{{speaker_id}}", condition: (corresponding label) }
 
 ## Step 2: Analyze Room Modes for Each
 For each measurement:
-Call `rew.analyze_room_modes` with:
+Call `rew_analyze_room_modes` with:
 - measurement_id: (measurement id)
 
 ## Step 3: Compare All Placements
-Call `rew.compare_measurements` with:
+Call `rew_compare_measurements` with:
 - measurement_ids: [all measurement ids]
 - comparison_type: "placement_comparison"
 
@@ -191,23 +191,23 @@ Provide recommendation with confidence level and trade-offs.
 # Complete Room Acoustic Analysis Workflow
 
 ## Step 1: Ingest Measurement
-Call `rew.ingest_measurement` with:
+Call `rew_ingest_measurement` with:
 - file_contents: {{measurement_file}}
 - metadata: { speaker_id: "{{speaker_id}}", condition: "room_analysis" }
 
 ## Step 2: Analyze Room Modes
-Call `rew.analyze_room_modes` with:
+Call `rew_analyze_room_modes` with:
 - measurement_id: (from step 1)
 {{#if room_dimensions_m}}
 - room_dimensions_m: {{room_dimensions_m}}
 {{/if}}
 
 ## Step 3: Analyze Decay (if waterfall data available)
-Call `rew.analyze_decay` with:
+Call `rew_analyze_decay` with:
 - measurement_id: (from step 1)
 
 ## Step 4: Analyze Impulse Response (if IR data available)
-Call `rew.analyze_impulse` with:
+Call `rew_analyze_impulse` with:
 - measurement_id: (from step 1)
 
 ## Step 5: Synthesize Findings
@@ -251,7 +251,7 @@ Combine all analyses to provide:
         "role": "user",
         "content": {
           "type": "text",
-          "text": "# GLM Calibration Comparison Workflow\n\n## Step 1: Ingest Pre-GLM Measurement\nCall `rew.ingest_measurement` with:\n- file_contents: * Freq(Hz) SPL(dB)...\n- metadata: { speaker_id: \"L\", condition: \"pre_glm\" }\n\n..."
+          "text": "# GLM Calibration Comparison Workflow\n\n## Step 1: Ingest Pre-GLM Measurement\nCall `rew_ingest_measurement` with:\n- file_contents: * Freq(Hz) SPL(dB)...\n- metadata: { speaker_id: \"L\", condition: \"pre_glm\" }\n\n..."
         }
       }
     ]

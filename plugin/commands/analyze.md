@@ -12,7 +12,7 @@ Analyze room measurements and present prioritized recommendations. Determine the
 If the user provides a file path as the argument:
 
 1. Read the file contents from disk.
-2. Call `rew.ingest_measurement` with the file contents and appropriate metadata. Ask the user for the speaker ID (L, R, Sub, Combined) and condition label if not obvious from the filename.
+2. Call `rew_ingest_measurement` with the file contents and appropriate metadata. Ask the user for the speaker ID (L, R, Sub, Combined) and condition label if not obvious from the filename.
 3. Note the returned measurement ID for analysis.
 4. Proceed to the Analysis section below.
 
@@ -20,17 +20,17 @@ If the user provides a file path as the argument:
 
 If no argument is provided:
 
-1. Call `rew.api_connect` with default parameters. If connection fails, tell the user to launch REW with the API enabled.
-2. Call `rew.api_list_measurements` to enumerate available measurements.
+1. Call `rew_api_connect` with default parameters. If connection fails, tell the user to launch REW with the API enabled.
+2. Call `rew_api_list_measurements` to enumerate available measurements.
 3. Present the measurement list to the user with names, dates, and indices.
 4. Ask the user to select which measurement(s) to analyze. Accept one primary measurement and optionally L/R/Sub designations.
-5. For each selected measurement, call `rew.api_get_measurement` using the measurement UUID to fetch the data.
-6. Call `rew.ingest_measurement` for each fetched measurement to store it for analysis. Use the measurement name from REW to infer speaker ID and condition.
+5. For each selected measurement, call `rew_api_get_measurement` using the measurement UUID to fetch the data.
+6. Call `rew_ingest_measurement` for each fetched measurement to store it for analysis. Use the measurement name from REW to infer speaker ID and condition.
 7. Proceed to the Analysis section below.
 
 ## Analysis
 
-Call `rew.analyze_room` with the collected measurement IDs:
+Call `rew_analyze_room` with the collected measurement IDs:
 - `measurement_id`: the primary measurement
 - `left_measurement_id` and `right_measurement_id`: if L and R measurements are available
 - `sub_measurement_id`: if a subwoofer measurement is available
@@ -58,11 +58,11 @@ For each completed analysis section (peaks/nulls, room modes, sub integration, L
 
 ## Target Curve Comparison
 
-Call `rew.compare_to_target` with the primary measurement ID. Default to `rew_room_curve` target type for studio monitoring. Present the deviation statistics and whether the response falls within acceptable limits.
+Call `rew_compare_to_target` with the primary measurement ID. Default to `rew_room_curve` target type for studio monitoring. Present the deviation statistics and whether the response falls within acceptable limits.
 
 ## GLM Context (conditional)
 
-If the analysis results include GLM comparison data with persistent issues, or if the user mentions Genelec/GLM, call `rew.interpret_with_glm_context` with the primary measurement ID.
+If the analysis results include GLM comparison data with persistent issues, or if the user mentions Genelec/GLM, call `rew_interpret_with_glm_context` with the primary measurement ID.
 
 Present:
 - What GLM successfully corrected

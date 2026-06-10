@@ -1,4 +1,4 @@
-# rew.analyze_sub_integration
+# rew_analyze_sub_integration
 
 Analyze subwoofer integration with main speakers.
 

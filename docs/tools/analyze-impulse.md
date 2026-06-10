@@ -1,4 +1,4 @@
-# Tool: rew.analyze_impulse
+# Tool: rew_analyze_impulse
 
 Analyzes impulse response and Energy Time Curve (ETC) data to detect early reflections.
 
@@ -9,7 +9,7 @@ Analyzes impulse response and Energy Time Curve (ETC) data to detect early refle
 
 ```json
 {
-  "name": "rew.analyze_impulse",
+  "name": "rew_analyze_impulse",
   "title": "Analyze Impulse Response",
   "description": "Analyze impulse response data to detect early reflections, estimate reflection paths, and assess their impact on sound quality.",
   "inputSchema": {

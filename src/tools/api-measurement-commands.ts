@@ -1,5 +1,5 @@
 /**
- * Tool: rew.api_measurement_commands
+ * Tool: rew_api_measurement_commands
  *
  * Execute per-measurement commands via API.
  * Useful for running processing operations on individual measurements.
@@ -48,8 +48,8 @@ export async function executeApiMeasurementCommands(input: ApiMeasurementCommand
       return {
         status: 'error',
         error_type: 'connection_error',
-        message: 'Not connected to REW API. Use rew.api_connect first.',
-        suggestion: 'Call rew.api_connect to establish connection'
+        message: 'Not connected to REW API. Use rew_api_connect first.',
+        suggestion: 'Call rew_api_connect to establish connection'
       };
     }
 

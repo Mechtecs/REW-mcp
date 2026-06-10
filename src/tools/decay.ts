@@ -1,5 +1,5 @@
 /**
- * Tool: rew.analyze_decay
+ * Tool: rew_analyze_decay
  * 
  * Analyzes decay characteristics from impulse response.
  */

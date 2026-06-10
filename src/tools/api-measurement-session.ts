@@ -1,5 +1,5 @@
 /**
- * Tool: rew.api_measurement_session
+ * Tool: rew_api_measurement_session
  *
  * Guided L/R/Sub measurement workflow with session state.
  * Sessions persist across tool calls and can be resumed.
@@ -141,8 +141,8 @@ export async function executeApiMeasurementSession(
           return {
             status: 'error',
             error_type: 'connection_error',
-            message: 'Not connected to REW API. Use rew.api_connect first.',
-            suggestion: 'Call rew.api_connect to establish connection'
+            message: 'Not connected to REW API. Use rew_api_connect first.',
+            suggestion: 'Call rew_api_connect to establish connection'
           };
         }
 

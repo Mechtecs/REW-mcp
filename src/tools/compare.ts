@@ -1,5 +1,5 @@
 /**
- * Tool: rew.compare_measurements
+ * Tool: rew_compare_measurements
  * 
  * Compares two or more measurements.
  */

@@ -9,7 +9,7 @@ Every workflow begins with the same three-step setup chain. Never skip steps; ea
 ### Step 1: Connect
 
 ```
-rew.api_connect({ port: 4735 })
+rew_api_connect({ port: 4735 })
 ```
 
 Expected output:
@@ -21,14 +21,14 @@ On error: direct the user to launch REW with the `-api` flag or enable the API u
 ### Step 2: Configure Audio Devices
 
 ```
-rew.api_audio({ action: "list_devices" })
+rew_api_audio({ action: "list_devices" })
 ```
 
 Inspect the returned device list. Identify the measurement microphone input and the monitor output. Then set them:
 
 ```
-rew.api_audio({ action: "set_input", device_name: "<mic device>" })
-rew.api_audio({ action: "set_output", device_name: "<output device>" })
+rew_api_audio({ action: "set_input", device_name: "<mic device>" })
+rew_api_audio({ action: "set_output", device_name: "<output device>" })
 ```
 
 If the expected device is missing from the list, check system audio settings. CoreAudio on macOS requires the device to be recognized at the OS level before REW can see it.
@@ -36,7 +36,7 @@ If the expected device is missing from the list, check system audio settings. Co
 ### Step 3: Check Input Levels
 
 ```
-rew.api_check_levels({})
+rew_api_check_levels({})
 ```
 
 Interpret the `zone` field:
@@ -51,7 +51,7 @@ Interpret the `zone` field:
 
 If the `feedback.warning` field contains an L/R mismatch warning (>3 dB difference), investigate mic positioning or channel routing before proceeding.
 
-Re-check loop: after each gain adjustment, call `rew.api_check_levels` again. Do not proceed until zone is `OPTIMAL`.
+Re-check loop: after each gain adjustment, call `rew_api_check_levels` again. Do not proceed until zone is `OPTIMAL`.
 
 ## SPL Calibration Chain
 
@@ -60,7 +60,7 @@ Three-phase state machine. Always run start -> check (loop) -> stop in order.
 ### Phase 1: Start Calibration
 
 ```
-rew.api_calibrate_spl({
+rew_api_calibrate_spl({
   action: "start",
   target_spl: 85,
   tolerance_db: 1.0,
@@ -73,7 +73,7 @@ This plays pink noise at -20 dBFS and starts the SPL meter with C-weighting, Slo
 ### Phase 2: Check Loop
 
 ```
-rew.api_calibrate_spl({
+rew_api_calibrate_spl({
   action: "check",
   target_spl: 85,
   tolerance_db: 1.0,
@@ -91,7 +91,7 @@ After user adjusts, call `check` again. Repeat until `within_tolerance` is true.
 ### Phase 3: Stop Calibration
 
 ```
-rew.api_calibrate_spl({ action: "stop" })
+rew_api_calibrate_spl({ action: "stop" })
 ```
 
 Always call stop, even if calibration was not fully achieved. This stops the pink noise generator and SPL meter.
@@ -108,7 +108,7 @@ The session tool enforces left -> right -> sub ordering via state machine valida
 ### Start Session
 
 ```
-rew.api_measurement_session({
+rew_api_measurement_session({
   action: "start_session",
   notes: "Initial room measurement - baseline"
 })
@@ -121,7 +121,7 @@ Returns `session_id` (UUID). Store this for all subsequent calls. The response i
 Confirm with user: left speaker is active, mic is at listening position pointing at left speaker.
 
 ```
-rew.api_measurement_session({
+rew_api_measurement_session({
   action: "measure",
   session_id: "<uuid>",
   channel: "left"
@@ -137,7 +137,7 @@ On 403 error: REW Pro license required. Cannot proceed with automated measuremen
 Confirm with user: right speaker is now active, mic remains at listening position.
 
 ```
-rew.api_measurement_session({
+rew_api_measurement_session({
   action: "measure",
   session_id: "<uuid>",
   channel: "right"
@@ -151,7 +151,7 @@ Returns `sequence_step: "right"`, `next_step: "sub"`.
 Confirm with user: subwoofer is active.
 
 ```
-rew.api_measurement_session({
+rew_api_measurement_session({
   action: "measure",
   session_id: "<uuid>",
   channel: "sub"
@@ -163,7 +163,7 @@ Returns `sequence_step: "complete"`, `next_step: null`. All measurements capture
 ### Check Status (anytime)
 
 ```
-rew.api_measurement_session({
+rew_api_measurement_session({
   action: "get_status",
   session_id: "<uuid>"
 })
@@ -184,7 +184,7 @@ If calling `measure` with a channel out of order (e.g., "right" before "left"), 
 After completing a measurement session, extract measurement IDs from the session state and run unified analysis:
 
 ```
-rew.analyze_room({
+rew_analyze_room({
   measurement_id: "<left_uuid>",
   left_measurement_id: "<left_uuid>",
   right_measurement_id: "<right_uuid>",
@@ -209,7 +209,7 @@ Key output fields:
 If the user has Genelec monitors with GLM calibration:
 
 ```
-rew.interpret_with_glm_context({
+rew_interpret_with_glm_context({
   measurement_id: "<post_glm_uuid>",
   glm_version: "glm4"
 })
@@ -218,7 +218,7 @@ rew.interpret_with_glm_context({
 Or with pre/post comparison for higher confidence:
 
 ```
-rew.interpret_with_glm_context({
+rew_interpret_with_glm_context({
   analysis_results: <output from analyze_room>,
   glm_version: "glm4"
 })
@@ -231,20 +231,20 @@ Key output: `overall_verdict.system_readiness` -- ready / ready_with_caveats / n
 Use these only when investigating a specific issue identified by `analyze_room`:
 
 ```
-rew.analyze_room_modes({
+rew_analyze_room_modes({
   measurement_id: "<uuid>",
   room_dimensions: { length: 12, width: 10, height: 8 }
 })
 ```
 
 ```
-rew.analyze_decay({
+rew_analyze_decay({
   measurement_id: "<uuid>"
 })
 ```
 
 ```
-rew.analyze_impulse({
+rew_analyze_impulse({
   measurement_id: "<uuid>"
 })
 ```
@@ -256,7 +256,7 @@ Do not run these by default. Run `analyze_room` first and drill into individual 
 Before/after comparison (most common):
 
 ```
-rew.compare_measurements({
+rew_compare_measurements({
   measurement_ids: ["<before_uuid>", "<after_uuid>"],
   comparison_type: "before_after",
   reference_measurement_id: "<before_uuid>"
@@ -266,7 +266,7 @@ rew.compare_measurements({
 L/R symmetry comparison:
 
 ```
-rew.compare_measurements({
+rew_compare_measurements({
   measurement_ids: ["<left_uuid>", "<right_uuid>"],
   comparison_type: "lr_symmetry"
 })
@@ -275,7 +275,7 @@ rew.compare_measurements({
 With/without sub comparison:
 
 ```
-rew.compare_measurements({
+rew_compare_measurements({
   measurement_ids: ["<mains_only_uuid>", "<mains_plus_sub_uuid>"],
   comparison_type: "with_without_sub",
   reference_measurement_id: "<mains_only_uuid>"
@@ -285,7 +285,7 @@ rew.compare_measurements({
 Target curve comparison:
 
 ```
-rew.compare_to_target({
+rew_compare_to_target({
   measurement_id: "<uuid>",
   target_type: "rew_room_curve"
 })
@@ -296,7 +296,7 @@ rew.compare_to_target({
 ### Get Recommendation
 
 ```
-rew.optimize_room({
+rew_optimize_room({
   action: "get_recommendation",
   measurement_id: "<current_uuid>",
   left_measurement_id: "<left_uuid>",
@@ -320,7 +320,7 @@ Also returns `priority_rank` (always 1 -- it is the top priority) and `total_iss
 After user makes the physical change and a new measurement is taken:
 
 ```
-rew.optimize_room({
+rew_optimize_room({
   action: "validate_adjustment",
   measurement_id: "<post_adjustment_uuid>",
   pre_measurement_id: "<pre_adjustment_uuid>",
@@ -340,7 +340,7 @@ Result classification:
 ### Check Progress
 
 ```
-rew.optimize_room({
+rew_optimize_room({
   action: "check_progress",
   measurement_id: "<current_uuid>",
   left_measurement_id: "<left_uuid>",
@@ -390,7 +390,7 @@ When `should_stop` is true, the room has reached "good" smoothness. Further opti
 When the user provides a REW text export file:
 
 ```
-rew.ingest_measurement({
+rew_ingest_measurement({
   file_contents: "<raw text content>",
   metadata: {
     speaker_id: "L",
@@ -408,13 +408,13 @@ The `condition` field must be alphanumeric with underscores (e.g., `baseline`, `
 When working with measurements already in REW:
 
 ```
-rew.api_list_measurements({})
+rew_api_list_measurements({})
 ```
 
 Returns array of measurement summaries with UUIDs. Then fetch specific ones:
 
 ```
-rew.api_get_measurement({ uuid: "<measurement_uuid>" })
+rew_api_get_measurement({ uuid: "<measurement_uuid>" })
 ```
 
 ### Import Into REW
@@ -422,7 +422,7 @@ rew.api_get_measurement({ uuid: "<measurement_uuid>" })
 To import data into REW (rather than into the MCP server's store):
 
 ```
-rew.api_import({
+rew_api_import({
   action: "frequency_response_data",
   data: "<frequency response data>",
   name: "Imported measurement"
@@ -436,8 +436,8 @@ rew.api_import({
 Symptom: any API tool returns `connection_error`.
 
 Recovery:
-1. Call `rew.api_connect` to re-establish connection
-2. Call `rew.api_measurement_session({ action: "get_status" })` to check if session survived
+1. Call `rew_api_connect` to re-establish connection
+2. Call `rew_api_measurement_session({ action: "get_status" })` to check if session survived
 3. If session exists, resume from current `sequence_step`
 4. If session is gone (server restarted), create new session and re-measure
 
@@ -456,9 +456,9 @@ Recovery by error type:
 Symptom: `api_check_levels` returns `CLIPPING` zone.
 
 Recovery:
-1. Call `rew.api_calibrate_spl({ action: "stop" })` if calibration is active
+1. Call `rew_api_calibrate_spl({ action: "stop" })` if calibration is active
 2. Direct user to reduce mic preamp gain by 6-10 dB
-3. Call `rew.api_check_levels` to verify
+3. Call `rew_api_check_levels` to verify
 4. Repeat until zone is `OPTIMAL`
 5. Restart calibration
 

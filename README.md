@@ -130,38 +130,38 @@ Claude: Connects to REW → checks your mic levels → calibrates to 85 dB SPL
 
 | Tool | What it does |
 |------|-------------|
-| `rew.analyze_room` | Full-room analysis with prioritized, fixability-ranked recommendations |
-| `rew.analyze_room_modes` | Detect peaks, nulls, and correlate with theoretical room modes |
-| `rew.analyze_decay` | RT60, EDT, and ringing analysis (ISO 3382) |
-| `rew.analyze_impulse` | Early reflection detection and path estimation |
-| `rew.compare_measurements` | Before/after, L/R symmetry, multi-position comparison |
-| `rew.compare_to_target` | Score response against flat, Harman, REW room, or custom curves |
-| `rew.interpret_with_glm_context` | What GLM can fix vs what requires physical changes |
-| `rew.average_measurements` | Spatial averaging (RMS, vector, hybrid methods) |
-| `rew.optimize_room` | One-at-a-time placement optimization with validation |
-| `rew.ingest_measurement` | Parse REW text exports for offline analysis |
+| `rew_analyze_room` | Full-room analysis with prioritized, fixability-ranked recommendations |
+| `rew_analyze_room_modes` | Detect peaks, nulls, and correlate with theoretical room modes |
+| `rew_analyze_decay` | RT60, EDT, and ringing analysis (ISO 3382) |
+| `rew_analyze_impulse` | Early reflection detection and path estimation |
+| `rew_compare_measurements` | Before/after, L/R symmetry, multi-position comparison |
+| `rew_compare_to_target` | Score response against flat, Harman, REW room, or custom curves |
+| `rew_interpret_with_glm_context` | What GLM can fix vs what requires physical changes |
+| `rew_average_measurements` | Spatial averaging (RMS, vector, hybrid methods) |
+| `rew_optimize_room` | One-at-a-time placement optimization with validation |
+| `rew_ingest_measurement` | Parse REW text exports for offline analysis |
 
 ### REW API Control
 
 | Tool | What it does |
 |------|-------------|
-| `rew.api_connect` | Connect to REW's REST API |
-| `rew.api_audio` | Configure input/output devices and sample rate |
-| `rew.api_check_levels` | Verify mic gain (clipping/optimal/low zone feedback) |
-| `rew.api_calibrate_spl` | Semi-automated SPL calibration to target level |
-| `rew.api_measure` | Trigger sweeps, SPL readings, or configure measurement |
-| `rew.api_measure_workflow` | Orchestrated setup + level check + calibration + measurement |
-| `rew.api_measurement_session` | Stateful L/R/Sub measurement sequence |
-| `rew.api_generator` | Signal generator: pink noise, sweeps, tones |
-| `rew.api_spl_meter` | Live SPL metering (A/C/Z weighting, Slow/Fast/Impulse) |
-| `rew.api_rta` | Real-time analyzer control and capture |
-| `rew.api_list_measurements` | List loaded measurements |
-| `rew.api_get_measurement` | Fetch measurement data by UUID |
-| `rew.api_import` | Import measurement files into REW |
-| `rew.api_measurement_commands` | Execute per-measurement REW commands |
-| `rew.api_measurement_eq` | Manage per-measurement EQ, filters, and targets |
-| `rew.api_eq` | Global EQ defaults, house curves |
-| `rew.api_groups` | Measurement group management |
+| `rew_api_connect` | Connect to REW's REST API |
+| `rew_api_audio` | Configure input/output devices and sample rate |
+| `rew_api_check_levels` | Verify mic gain (clipping/optimal/low zone feedback) |
+| `rew_api_calibrate_spl` | Semi-automated SPL calibration to target level |
+| `rew_api_measure` | Trigger sweeps, SPL readings, or configure measurement |
+| `rew_api_measure_workflow` | Orchestrated setup + level check + calibration + measurement |
+| `rew_api_measurement_session` | Stateful L/R/Sub measurement sequence |
+| `rew_api_generator` | Signal generator: pink noise, sweeps, tones |
+| `rew_api_spl_meter` | Live SPL metering (A/C/Z weighting, Slow/Fast/Impulse) |
+| `rew_api_rta` | Real-time analyzer control and capture |
+| `rew_api_list_measurements` | List loaded measurements |
+| `rew_api_get_measurement` | Fetch measurement data by UUID |
+| `rew_api_import` | Import measurement files into REW |
+| `rew_api_measurement_commands` | Execute per-measurement REW commands |
+| `rew_api_measurement_eq` | Manage per-measurement EQ, filters, and targets |
+| `rew_api_eq` | Global EQ defaults, house curves |
+| `rew_api_groups` | Measurement group management |
 
 ### Prompts & Resources
 

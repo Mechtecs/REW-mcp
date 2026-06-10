@@ -59,29 +59,29 @@ describe('MCP Server Integration', () => {
       const toolNames = tools.map(t => t.name);
 
       // Core analysis tools
-      expect(toolNames).toContain('rew.ingest_measurement');
-      expect(toolNames).toContain('rew.compare_measurements');
-      expect(toolNames).toContain('rew.analyze_room_modes');
-      expect(toolNames).toContain('rew.analyze_decay');
-      expect(toolNames).toContain('rew.analyze_impulse');
-      expect(toolNames).toContain('rew.interpret_with_glm_context');
-      expect(toolNames).toContain('rew.average_measurements');
-      expect(toolNames).toContain('rew.compare_to_target');
+      expect(toolNames).toContain('rew_ingest_measurement');
+      expect(toolNames).toContain('rew_compare_measurements');
+      expect(toolNames).toContain('rew_analyze_room_modes');
+      expect(toolNames).toContain('rew_analyze_decay');
+      expect(toolNames).toContain('rew_analyze_impulse');
+      expect(toolNames).toContain('rew_interpret_with_glm_context');
+      expect(toolNames).toContain('rew_average_measurements');
+      expect(toolNames).toContain('rew_compare_to_target');
 
       // API tools
-      expect(toolNames).toContain('rew.api_connect');
-      expect(toolNames).toContain('rew.api_list_measurements');
-      expect(toolNames).toContain('rew.api_get_measurement');
-      expect(toolNames).toContain('rew.api_measure');
-      expect(toolNames).toContain('rew.api_audio');
-      expect(toolNames).toContain('rew.api_generator');
-      expect(toolNames).toContain('rew.api_spl_meter');
-      expect(toolNames).toContain('rew.api_measure_workflow');
-      expect(toolNames).toContain('rew.api_check_levels');
-      expect(toolNames).toContain('rew.api_calibrate_spl');
-      expect(toolNames).toContain('rew.api_measurement_session');
-      expect(toolNames).toContain('rew.analyze_room');
-      expect(toolNames).toContain('rew.optimize_room');
+      expect(toolNames).toContain('rew_api_connect');
+      expect(toolNames).toContain('rew_api_list_measurements');
+      expect(toolNames).toContain('rew_api_get_measurement');
+      expect(toolNames).toContain('rew_api_measure');
+      expect(toolNames).toContain('rew_api_audio');
+      expect(toolNames).toContain('rew_api_generator');
+      expect(toolNames).toContain('rew_api_spl_meter');
+      expect(toolNames).toContain('rew_api_measure_workflow');
+      expect(toolNames).toContain('rew_api_check_levels');
+      expect(toolNames).toContain('rew_api_calibrate_spl');
+      expect(toolNames).toContain('rew_api_measurement_session');
+      expect(toolNames).toContain('rew_analyze_room');
+      expect(toolNames).toContain('rew_optimize_room');
     });
 
     it('should have valid inputSchema for each tool', async () => {
@@ -131,7 +131,7 @@ describe('MCP Server Integration', () => {
       );
 
       const response = await mcpClient.callTool({
-        name: 'rew.api_connect',
+        name: 'rew_api_connect',
         arguments: {}
       });
 
@@ -147,7 +147,7 @@ describe('MCP Server Integration', () => {
 
     it('should set isError: true when tool receives invalid input', async () => {
       const response = await mcpClient.callTool({
-        name: 'rew.analyze_room_modes',
+        name: 'rew_analyze_room_modes',
         arguments: {
           measurement_id: ''  // Empty ID should fail validation
         }
@@ -161,7 +161,7 @@ describe('MCP Server Integration', () => {
     it('should set isError: true for unknown tool', async () => {
       // Unknown tools are caught by the error handler and return isError: true
       const response = await mcpClient.callTool({
-        name: 'rew.nonexistent_tool',
+        name: 'rew_nonexistent_tool',
         arguments: {}
       });
 
@@ -193,7 +193,7 @@ describe('MCP Server Integration', () => {
       );
 
       const response = await mcpClient.callTool({
-        name: 'rew.api_connect',
+        name: 'rew_api_connect',
         arguments: {}
       });
 
@@ -224,7 +224,7 @@ describe('MCP Server Integration', () => {
 200.0 80.0 -90.0`;
 
       const ingestResponse = await mcpClient.callTool({
-        name: 'rew.ingest_measurement',
+        name: 'rew_ingest_measurement',
         arguments: {
           file_contents: rewData,
           metadata: {
@@ -240,7 +240,7 @@ describe('MCP Server Integration', () => {
 
       // Step 2: Call analyze_room_modes on the ingested measurement
       const analysisResponse = await mcpClient.callTool({
-        name: 'rew.analyze_room_modes',
+        name: 'rew_analyze_room_modes',
         arguments: {
           measurement_id: ingestResult.measurement_id,
           analysis_options: {
@@ -271,7 +271,7 @@ describe('MCP Server Integration', () => {
 
     it('should return error for non-existent measurement in analysis tool', async () => {
       const response = await mcpClient.callTool({
-        name: 'rew.analyze_room_modes',
+        name: 'rew_analyze_room_modes',
         arguments: {
           measurement_id: 'nonexistent-measurement'
         }
@@ -299,7 +299,7 @@ describe('MCP Server Integration', () => {
 100.0 79.0 -120.0`;
 
       const ingestResponse = await mcpClient.callTool({
-        name: 'rew.ingest_measurement',
+        name: 'rew_ingest_measurement',
         arguments: {
           file_contents: rewData,
           metadata: {
@@ -314,7 +314,7 @@ describe('MCP Server Integration', () => {
       // Analyze with room dimensions (4m x 3m x 2.5m room)
       // Expected axial modes: ~43Hz (length), ~57Hz (width), ~69Hz (height)
       const response = await mcpClient.callTool({
-        name: 'rew.analyze_room_modes',
+        name: 'rew_analyze_room_modes',
         arguments: {
           measurement_id: ingestResult.measurement_id,
           room_dimensions_m: {
@@ -367,7 +367,7 @@ describe('MCP Server Integration', () => {
 
       // Step 1: Connect
       const connectResponse = await mcpClient.callTool({
-        name: 'rew.api_connect',
+        name: 'rew_api_connect',
         arguments: {}
       });
 
@@ -378,7 +378,7 @@ describe('MCP Server Integration', () => {
 
       // Step 2: List measurements
       const listResponse = await mcpClient.callTool({
-        name: 'rew.api_list_measurements',
+        name: 'rew_api_list_measurements',
         arguments: {}
       });
 
@@ -411,13 +411,13 @@ describe('MCP Server Integration', () => {
 
       // Connect
       await mcpClient.callTool({
-        name: 'rew.api_connect',
+        name: 'rew_api_connect',
         arguments: {}
       });
 
       // Try to get nonexistent measurement
       const response = await mcpClient.callTool({
-        name: 'rew.api_get_measurement',
+        name: 'rew_api_get_measurement',
         arguments: { measurement_uuid: 'nonexistent' }
       });
 
@@ -446,7 +446,7 @@ describe('MCP Server Integration', () => {
       );
 
       const response = await mcpClient.callTool({
-        name: 'rew.api_connect',
+        name: 'rew_api_connect',
         arguments: {}
       });
 
@@ -473,7 +473,7 @@ describe('MCP Server Integration', () => {
       );
 
       const response = await mcpClient.callTool({
-        name: 'rew.api_connect',
+        name: 'rew_api_connect',
         arguments: {}
       });
 
@@ -482,11 +482,11 @@ describe('MCP Server Integration', () => {
     });
   });
 
-  describe('rew.api_audio Tool Coverage (FNDN-11)', () => {
+  describe('rew_api_audio Tool Coverage (FNDN-11)', () => {
     it('should validate action enum (invalid input)', async () => {
       // Test input validation for api_audio tool
       const response = await mcpClient.callTool({
-        name: 'rew.api_audio',
+        name: 'rew_api_audio',
         arguments: { action: 'invalid_action' }
       });
 
@@ -497,7 +497,7 @@ describe('MCP Server Integration', () => {
     it('should accept valid action enum values', async () => {
       // Test that valid actions are accepted (even if API call fails)
       const {tools} = await mcpClient.listTools();
-      const audioTool = tools.find(t => t.name === 'rew.api_audio');
+      const audioTool = tools.find(t => t.name === 'rew_api_audio');
 
       expect(audioTool).toBeDefined();
       expect(audioTool?.inputSchema).toBeDefined();
@@ -509,11 +509,11 @@ describe('MCP Server Integration', () => {
     });
   });
 
-  describe('rew.api_measure Tool Coverage (FNDN-11)', () => {
+  describe('rew_api_measure Tool Coverage (FNDN-11)', () => {
     it('should validate action enum (invalid input)', async () => {
       // Test input validation for api_measure tool
       const response = await mcpClient.callTool({
-        name: 'rew.api_measure',
+        name: 'rew_api_measure',
         arguments: { action: 'invalid_action' }
       });
 
@@ -524,7 +524,7 @@ describe('MCP Server Integration', () => {
     it('should validate config.level_db range', async () => {
       // Test that config.level_db validates range (-60 to 0)
       const response = await mcpClient.callTool({
-        name: 'rew.api_measure',
+        name: 'rew_api_measure',
         arguments: {
           action: 'configure',
           config: { level_db: -100 }  // Out of range
@@ -538,7 +538,7 @@ describe('MCP Server Integration', () => {
     it('should accept valid action enum values', async () => {
       // Test that valid actions are accepted
       const {tools} = await mcpClient.listTools();
-      const measureTool = tools.find(t => t.name === 'rew.api_measure');
+      const measureTool = tools.find(t => t.name === 'rew_api_measure');
 
       expect(measureTool).toBeDefined();
       expect(measureTool?.inputSchema).toBeDefined();

@@ -1,5 +1,5 @@
 /**
- * Tool: rew.api_list_measurements
+ * Tool: rew_api_list_measurements
  * 
  * List all measurements available in the connected REW instance.
  */
@@ -47,7 +47,7 @@ export async function executeApiListMeasurements(input: ApiListMeasurementsInput
         status: 'error',
         error_type: 'not_connected',
         message: 'Not connected to REW API',
-        suggestion: 'Use rew.api_connect to establish a connection first'
+        suggestion: 'Use rew_api_connect to establish a connection first'
       };
     }
 

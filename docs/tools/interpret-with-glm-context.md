@@ -1,4 +1,4 @@
-# Tool: rew.interpret_with_glm_context
+# Tool: rew_interpret_with_glm_context
 
 Interprets analysis results through the lens of Genelec GLM behavior and capabilities.
 
@@ -9,7 +9,7 @@ Interprets analysis results through the lens of Genelec GLM behavior and capabil
 
 ```json
 {
-  "name": "rew.interpret_with_glm_context",
+  "name": "rew_interpret_with_glm_context",
   "title": "Interpret with GLM Context",
   "description": "Interpret measurement analysis results considering Genelec GLM's capabilities and limitations. Explains what GLM can address, what requires physical solutions, and provides calibration-aware recommendations.",
   "inputSchema": {
@@ -17,7 +17,7 @@ Interprets analysis results through the lens of Genelec GLM behavior and capabil
     "properties": {
       "comparison_id": {
         "type": "string",
-        "description": "ID from a previous rew.compare_measurements call (for pre/post GLM analysis)"
+        "description": "ID from a previous rew_compare_measurements call (for pre/post GLM analysis)"
       },
       "measurement_id": {
         "type": "string",

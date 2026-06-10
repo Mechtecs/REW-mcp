@@ -1,5 +1,5 @@
 /**
- * Tool: rew.api_measure
+ * Tool: rew_api_measure
  * 
  * Control REW measurements via API.
  * Note: Automated sweep measurements require REW Pro license.
@@ -72,8 +72,8 @@ export async function executeApiMeasure(input: ApiMeasureInput): Promise<ToolRes
       return {
         status: 'error',
         error_type: 'connection_error',
-        message: 'Not connected to REW API. Use rew.api_connect first.',
-        suggestion: 'Call rew.api_connect to establish connection'
+        message: 'Not connected to REW API. Use rew_api_connect first.',
+        suggestion: 'Call rew_api_connect to establish connection'
       };
     }
 

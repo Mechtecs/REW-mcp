@@ -1,5 +1,5 @@
 /**
- * Tool: rew.api_measure_workflow
+ * Tool: rew_api_measure_workflow
  * 
  * Comprehensive measurement workflow orchestration.
  * Handles device setup, level calibration, measurement execution, and result retrieval.
@@ -125,8 +125,8 @@ export async function executeApiMeasureWorkflow(
       return {
         status: 'error',
         error_type: 'connection_error',
-        message: 'Not connected to REW API. Use rew.api_connect first.',
-        suggestion: 'Call rew.api_connect to establish connection'
+        message: 'Not connected to REW API. Use rew_api_connect first.',
+        suggestion: 'Call rew_api_connect to establish connection'
       };
     }
 
@@ -441,7 +441,7 @@ async function calibrateLevel(
     
     currentLevel = newLevel;
   } else {
-    recommendation = `SPL meter not running. Start it with rew.api_spl_meter first, ` +
+    recommendation = `SPL meter not running. Start it with rew_api_spl_meter first, ` +
       `then manually adjust level to achieve ${targetSPL} dB SPL.`;
   }
 

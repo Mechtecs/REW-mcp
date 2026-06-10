@@ -1,5 +1,5 @@
 /**
- * Tool: rew.api_rta
+ * Tool: rew_api_rta
  *
  * Control REW's Real-Time Analyzer (RTA) via API.
  * Start/stop the RTA, configure settings, and read captured data.
@@ -53,8 +53,8 @@ export async function executeApiRTA(input: ApiRTAInput): Promise<ToolResponse<Ap
       return {
         status: 'error',
         error_type: 'connection_error',
-        message: 'Not connected to REW API. Use rew.api_connect first.',
-        suggestion: 'Call rew.api_connect to establish connection'
+        message: 'Not connected to REW API. Use rew_api_connect first.',
+        suggestion: 'Call rew_api_connect to establish connection'
       };
     }
 

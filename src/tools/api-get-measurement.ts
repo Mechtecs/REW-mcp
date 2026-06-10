@@ -1,5 +1,5 @@
 /**
- * Tool: rew.api_get_measurement
+ * Tool: rew_api_get_measurement
  * 
  * Fetch a measurement directly from REW via API.
  * Measurement is identified by UUID, not index (per REW docs:
@@ -70,7 +70,7 @@ export async function executeApiGetMeasurement(input: ApiGetMeasurementInput): P
         status: 'error',
         error_type: 'not_connected',
         message: 'Not connected to REW API',
-        suggestion: 'Use rew.api_connect to establish a connection first'
+        suggestion: 'Use rew_api_connect to establish a connection first'
       };
     }
 
@@ -191,7 +191,7 @@ export async function executeApiGetMeasurement(input: ApiGetMeasurementInput): P
 
     if (error instanceof REWApiError) {
       const suggestionMap: Record<string, string> = {
-        'NOT_FOUND': 'Use rew.api_list_measurements to see available measurements',
+        'NOT_FOUND': 'Use rew_api_list_measurements to see available measurements',
         'CONNECTION_REFUSED': 'Ensure REW is running with API enabled. Check Preferences → API → Start',
         'TIMEOUT': 'REW took too long to respond. Check if REW is busy or frozen',
         'INTERNAL_ERROR': 'Check REW application for errors',

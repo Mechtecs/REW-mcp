@@ -1,4 +1,4 @@
-# rew.api_measure_workflow
+# rew_api_measure_workflow
 
 Complete measurement workflow orchestration for automated testing.
 
@@ -14,7 +14,7 @@ This tool provides end-to-end measurement workflow automation. It handles:
 
 ## Prerequisites
 
-- Connected to REW API via `rew.api_connect`
+- Connected to REW API via `rew_api_connect`
 - REW Pro license for automated sweep measurements
 
 ## Input Schema
@@ -93,13 +93,13 @@ Execute multiple measurements in sequence (e.g., Left/Right speakers, multiple p
 
 ```javascript
 // 1. Connect to REW API
-await rew.api_connect({ port: 4735 });
+await rew_api_connect({ port: 4735 });
 
 // 2. Check current status
-await rew.api_measure_workflow({ action: "get_status" });
+await rew_api_measure_workflow({ action: "get_status" });
 
 // 3. Setup devices (auto-detect or specify)
-await rew.api_measure_workflow({
+await rew_api_measure_workflow({
   action: "setup",
   setup: {
     input_device: "UMIK-1",
@@ -109,13 +109,13 @@ await rew.api_measure_workflow({
 });
 
 // 4. Check levels before measuring
-await rew.api_measure_workflow({
+await rew_api_measure_workflow({
   action: "check_levels",
   measurement: { level_dbfs: -12 }
 });
 
 // 5. Execute measurement
-await rew.api_measure_workflow({
+await rew_api_measure_workflow({
   action: "measure",
   measurement: {
     name: "Left Speaker - Listening Position",
@@ -126,7 +126,7 @@ await rew.api_measure_workflow({
 });
 
 // 6. Or execute a sequence
-await rew.api_measure_workflow({
+await rew_api_measure_workflow({
   action: "measure_sequence",
   measurement: { level_dbfs: -12 },
   sequence: {
@@ -202,8 +202,8 @@ The tool provides warnings for common issues:
 
 ## Related Tools
 
-- `rew.api_connect` - Connect to REW API
-- `rew.api_audio` - Manual audio device configuration
-- `rew.api_generator` - Signal generator control
-- `rew.api_spl_meter` - SPL monitoring
-- `rew.api_get_measurement` - Retrieve measurement data after capture
+- `rew_api_connect` - Connect to REW API
+- `rew_api_audio` - Manual audio device configuration
+- `rew_api_generator` - Signal generator control
+- `rew_api_spl_meter` - SPL monitoring
+- `rew_api_get_measurement` - Retrieve measurement data after capture

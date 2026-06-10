@@ -8,15 +8,15 @@ Gather and present a clean status summary of the current REW session state.
 
 ## Step 1: Connect
 
-Call `rew.api_connect` with default parameters. If connection fails, report that REW is not reachable and suggest launching it with the `-api` flag. Do not proceed further.
+Call `rew_api_connect` with default parameters. If connection fails, report that REW is not reachable and suggest launching it with the `-api` flag. Do not proceed further.
 
 ## Step 2: Gather State
 
 Run these calls to collect session information:
 
-1. Call `rew.api_measurement_session` with action `get_status` to check for active sessions. Note the session ID, sequence step, and measurements taken.
-2. Call `rew.api_list_measurements` to get all measurements currently loaded in REW.
-3. Call `rew.api_audio` with action `status` to get the current audio device configuration.
+1. Call `rew_api_measurement_session` with action `get_status` to check for active sessions. Note the session ID, sequence step, and measurements taken.
+2. Call `rew_api_list_measurements` to get all measurements currently loaded in REW.
+3. Call `rew_api_audio` with action `status` to get the current audio device configuration.
 
 ## Step 3: Determine State and Next Step
 

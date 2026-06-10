@@ -1,5 +1,5 @@
 /**
- * Tool: rew.analyze_room
+ * Tool: rew_analyze_room
  *
  * Unified room analysis combining all interpretation modules with prioritized recommendations.
  */
