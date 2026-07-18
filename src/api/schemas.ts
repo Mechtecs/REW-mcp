@@ -92,6 +92,43 @@ export interface InputLevels {
   time_span_seconds: number;
 }
 
+// EQ default settings — REW API 0.9.5 replaced the single /eq/defaults blob
+// with four typed endpoints (default-equaliser, default-target-settings,
+// default-target-level, default-room-curve-settings).
+export interface EqualiserEntry {
+  manufacturer: string;
+  model: string;
+}
+
+export interface EqTargetSettings {
+  shape?: string;
+  bassManagementSlopedBPerOctave?: number;
+  bassManagementCutoffHz?: number;
+  lowFreqSlopedBPerOctave?: number;
+  lowFreqCutoffHz?: number;
+  lowPassCrossoverType?: string;
+  highPassCrossoverType?: string;
+  lowPassCutoffHz?: number;
+  highPassCutoffHz?: number;
+}
+
+export interface EqRoomCurveSettings {
+  addRoomCurve?: boolean;
+  lowFreqRiseStartHz?: number;
+  lowFreqRiseEndHz?: number;
+  lowFreqRiseSlopedBPerOctave?: number;
+  highFreqFallStartHz?: number;
+  highFreqFallSlopedBPerOctave?: number;
+}
+
+// Composite view aggregating the four EQ default endpoints.
+export interface EQDefaults {
+  equaliser?: EqualiserEntry;
+  targetSettings?: EqTargetSettings;
+  targetLevel?: number;
+  roomCurveSettings?: EqRoomCurveSettings;
+}
+
 // REW client type (for workflow functions that accept client parameter)
 // This is a structural type, not validation - client is internal
 export interface REWClientLike {

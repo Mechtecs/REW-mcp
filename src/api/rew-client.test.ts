@@ -1486,4 +1486,70 @@ describe('REWApiClient', () => {
       expect(capturedUrl).not.toContain('?');
     });
   });
+
+  describe('EQ default settings (four split endpoints)', () => {
+    const equaliser = { manufacturer: 'Generic', model: 'Generic' };
+    const targetSettings = { shape: 'Full range', lowPassCutoffHz: 1000, highPassCutoffHz: 100 };
+    const roomCurveSettings = { addRoomCurve: false, lowFreqRiseStartHz: 200 };
+
+    it('should aggregate the four default-* endpoints in getEQDefaults', async () => {
+      server.use(
+        http.get('http://127.0.0.1:4735/eq/default-equaliser', () => HttpResponse.json(equaliser)),
+        http.get('http://127.0.0.1:4735/eq/default-target-settings', () => HttpResponse.json(targetSettings)),
+        http.get('http://127.0.0.1:4735/eq/default-target-level', () => HttpResponse.json(100.5)),
+        http.get('http://127.0.0.1:4735/eq/default-room-curve-settings', () => HttpResponse.json(roomCurveSettings))
+      );
+      const client = new REWApiClient();
+      const defaults = await client.getEQDefaults();
+      expect(defaults.equaliser).toEqual(equaliser);
+      expect(defaults.targetSettings).toEqual(targetSettings);
+      expect(defaults.targetLevel).toBe(100.5);
+      expect(defaults.roomCurveSettings).toEqual(roomCurveSettings);
+    });
+
+    it('should omit keys whose endpoint fails', async () => {
+      server.use(
+        http.get('http://127.0.0.1:4735/eq/default-equaliser', () => HttpResponse.json(equaliser)),
+        http.get('http://127.0.0.1:4735/eq/default-target-settings', () => new HttpResponse(null, { status: 404 })),
+        http.get('http://127.0.0.1:4735/eq/default-target-level', () => new HttpResponse(null, { status: 404 })),
+        http.get('http://127.0.0.1:4735/eq/default-room-curve-settings', () => new HttpResponse(null, { status: 404 }))
+      );
+      const client = new REWApiClient();
+      const defaults = await client.getEQDefaults();
+      expect(defaults.equaliser).toEqual(equaliser);
+      expect(defaults.targetSettings).toBeUndefined();
+      expect(defaults.targetLevel).toBeUndefined();
+      expect(defaults.roomCurveSettings).toBeUndefined();
+    });
+
+    it('should dispatch only provided keys in setEQDefaults', async () => {
+      const hits: string[] = [];
+      server.use(
+        http.post('http://127.0.0.1:4735/eq/default-equaliser', () => { hits.push('equaliser'); return HttpResponse.json({ message: 'ok' }); }),
+        http.post('http://127.0.0.1:4735/eq/default-target-level', () => { hits.push('level'); return HttpResponse.json({ message: 'ok' }); }),
+        http.post('http://127.0.0.1:4735/eq/default-target-settings', () => { hits.push('target'); return HttpResponse.json({ message: 'ok' }); }),
+        http.post('http://127.0.0.1:4735/eq/default-room-curve-settings', () => { hits.push('room'); return HttpResponse.json({ message: 'ok' }); })
+      );
+      const client = new REWApiClient();
+      const ok = await client.setEQDefaults({ equaliser, targetLevel: 99 });
+      expect(ok).toBe(true);
+      expect(hits.sort()).toEqual(['equaliser', 'level']);
+    });
+
+    it('should return false for an empty setEQDefaults payload', async () => {
+      const client = new REWApiClient();
+      const ok = await client.setEQDefaults({});
+      expect(ok).toBe(false);
+    });
+
+    it('should return false when any dispatched update fails', async () => {
+      server.use(
+        http.post('http://127.0.0.1:4735/eq/default-equaliser', () => HttpResponse.json({ message: 'ok' })),
+        http.post('http://127.0.0.1:4735/eq/default-target-settings', () => new HttpResponse(null, { status: 500 }))
+      );
+      const client = new REWApiClient();
+      const ok = await client.setEQDefaults({ equaliser, targetSettings });
+      expect(ok).toBe(false);
+    });
+  });
 });

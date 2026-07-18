@@ -192,7 +192,7 @@ export function registerTools(server: Server): void {
         {
           name: 'rew_api_eq',
           title: 'EQ Management',
-          description: 'Manage global EQ defaults and settings via API. Actions: list_equalisers, list_manufacturers, get_defaults, set_defaults, get_house_curve, set_house_curve.',
+          description: 'Manage global EQ defaults and settings via API. Actions: list_equalisers, list_manufacturers, get_defaults, set_defaults, get_house_curve, set_house_curve. get_defaults returns a composite object { equaliser {manufacturer, model}, targetSettings, targetLevel (dB SPL), roomCurveSettings } aggregated from the four REW default-* endpoints; set_defaults accepts the same object and only updates the keys you provide.',
           inputSchema: zodToJsonSchema(ApiEQInputSchema)
         },
         {

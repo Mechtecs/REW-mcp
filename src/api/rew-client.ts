@@ -20,7 +20,11 @@ import {
   InputLevelsSchema,
   validateApiResponse,
   type InputCalibration,
-  type InputLevels
+  type InputLevels,
+  type EqualiserEntry,
+  type EqTargetSettings,
+  type EqRoomCurveSettings,
+  type EQDefaults
 } from './schemas.js';
 
 /**
@@ -2134,22 +2138,116 @@ export class REWApiClient {
   }
 
   /**
-   * Get default EQ settings
+   * Get the default equaliser (manufacturer + model).
    */
-  async getEQDefaults(): Promise<unknown> {
-    const response = await this.request('GET', '/eq/defaults');
-    if (response.status !== 200) {
-      this.handleResponseError(response, 'EQ defaults');
-    }
-    return response.data;
+  async getDefaultEqualiser(): Promise<EqualiserEntry | null> {
+    const response = await this.request('GET', '/eq/default-equaliser');
+    return response.status === 200 ? (response.data as EqualiserEntry) : null;
   }
 
   /**
-   * Set default EQ settings
+   * Set the default equaliser (manufacturer + model).
    */
-  async setEQDefaults(defaults: unknown): Promise<boolean> {
-    const response = await this.request('POST', '/eq/defaults', defaults);
+  async setDefaultEqualiser(entry: EqualiserEntry): Promise<boolean> {
+    const response = await this.request('POST', '/eq/default-equaliser', entry);
     return response.status === 200;
+  }
+
+  /**
+   * Get the default target settings (shape, bass management, crossovers).
+   */
+  async getDefaultTargetSettings(): Promise<EqTargetSettings | null> {
+    const response = await this.request('GET', '/eq/default-target-settings');
+    return response.status === 200 ? (response.data as EqTargetSettings) : null;
+  }
+
+  /**
+   * Set the default target settings.
+   */
+  async setDefaultTargetSettings(settings: EqTargetSettings): Promise<boolean> {
+    const response = await this.request('POST', '/eq/default-target-settings', settings);
+    return response.status === 200;
+  }
+
+  /**
+   * Get the default target level (dB SPL).
+   */
+  async getDefaultTargetLevel(): Promise<number | null> {
+    const response = await this.request('GET', '/eq/default-target-level');
+    return response.status === 200 && typeof response.data === 'number'
+      ? response.data
+      : null;
+  }
+
+  /**
+   * Set the default target level (dB SPL).
+   */
+  async setDefaultTargetLevel(level: number): Promise<boolean> {
+    const response = await this.request('POST', '/eq/default-target-level', level);
+    return response.status === 200;
+  }
+
+  /**
+   * Get the default room curve settings.
+   */
+  async getDefaultRoomCurveSettings(): Promise<EqRoomCurveSettings | null> {
+    const response = await this.request('GET', '/eq/default-room-curve-settings');
+    return response.status === 200 ? (response.data as EqRoomCurveSettings) : null;
+  }
+
+  /**
+   * Set the default room curve settings.
+   */
+  async setDefaultRoomCurveSettings(settings: EqRoomCurveSettings): Promise<boolean> {
+    const response = await this.request('POST', '/eq/default-room-curve-settings', settings);
+    return response.status === 200;
+  }
+
+  /**
+   * Get all default EQ settings as a composite view.
+   *
+   * REW API 0.9.5 removed the single GET /eq/defaults blob and split it into
+   * four typed endpoints; this aggregates them. Any endpoint that fails leaves
+   * its key undefined rather than failing the whole call.
+   */
+  async getEQDefaults(): Promise<EQDefaults> {
+    const [equaliser, targetSettings, targetLevel, roomCurveSettings] = await Promise.all([
+      this.getDefaultEqualiser(),
+      this.getDefaultTargetSettings(),
+      this.getDefaultTargetLevel(),
+      this.getDefaultRoomCurveSettings()
+    ]);
+
+    const defaults: EQDefaults = {};
+    if (equaliser) defaults.equaliser = equaliser;
+    if (targetSettings) defaults.targetSettings = targetSettings;
+    if (targetLevel !== null) defaults.targetLevel = targetLevel;
+    if (roomCurveSettings) defaults.roomCurveSettings = roomCurveSettings;
+    return defaults;
+  }
+
+  /**
+   * Set default EQ settings.
+   *
+   * Dispatches each provided key to its dedicated endpoint (POST /eq/default-*).
+   * Returns true only if every attempted update succeeded. Keys left undefined
+   * are not touched; passing an empty object is a no-op that returns false.
+   */
+  async setEQDefaults(defaults: EQDefaults): Promise<boolean> {
+    const results: boolean[] = [];
+    if (defaults.equaliser !== undefined) {
+      results.push(await this.setDefaultEqualiser(defaults.equaliser));
+    }
+    if (defaults.targetSettings !== undefined) {
+      results.push(await this.setDefaultTargetSettings(defaults.targetSettings));
+    }
+    if (defaults.targetLevel !== undefined) {
+      results.push(await this.setDefaultTargetLevel(defaults.targetLevel));
+    }
+    if (defaults.roomCurveSettings !== undefined) {
+      results.push(await this.setDefaultRoomCurveSettings(defaults.roomCurveSettings));
+    }
+    return results.length > 0 && results.every(Boolean);
   }
 
   /**
