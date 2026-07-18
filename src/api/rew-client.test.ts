@@ -470,48 +470,70 @@ describe('REWApiClient', () => {
   });
 
   describe('Measurement data retrieval', () => {
-    it('should get waterfall data', async () => {
+    it('should get waterfall data from the Generate waterfall ProcessResult', async () => {
+      const processResult = {
+        processName: 'Generate waterfall ID 1',
+        message: 'Completed',
+        results: {
+          '0': {
+            '0': encodeREWFloatArray([80, 75, 70]),
+            '1': encodeREWFloatArray([78, NaN, 68]),
+            Frequencies: encodeREWFloatArray([20, 50, 100]),
+            Times: encodeREWFloatArray([0, 0.1])
+          }
+        }
+      };
+      let commandBody: unknown;
+      let blockingEnabled = false;
       server.use(
-        http.get('http://127.0.0.1:4735/measurements/test-uuid/waterfall', () => {
-          const freqBase64 = encodeREWFloatArray([20, 50, 100]);
-          const magSlice1 = encodeREWFloatArray([80, 75, 70]);
-          const magSlice2 = encodeREWFloatArray([78, 73, 68]);
-          const magSlice3 = encodeREWFloatArray([76, 71, 66]);
-          return HttpResponse.json({
-            frequencies: freqBase64,
-            timeSlices: [0, 100, 200],
-            magnitude: [magSlice1, magSlice2, magSlice3]
-          });
+        http.get('http://127.0.0.1:4735/application/blocking', () =>
+          HttpResponse.json(blockingEnabled)
+        ),
+        http.post('http://127.0.0.1:4735/application/blocking', async ({ request }) => {
+          blockingEnabled = (await request.json()) === true;
+          return HttpResponse.json({ message: 'Blocking updated' });
+        }),
+        http.post('http://127.0.0.1:4735/measurements/test-uuid/command', async ({ request }) => {
+          commandBody = await request.json();
+          return HttpResponse.json({ message: JSON.stringify(processResult) });
         })
       );
+
       const client = new REWApiClient();
       const waterfall = await client.getWaterfallData('test-uuid');
+
+      expect((commandBody as { command: string }).command).toBe('Generate waterfall');
       expect(waterfall.frequencies_hz).toEqual([20, 50, 100]);
-      expect(waterfall.time_slices_ms).toEqual([0, 100, 200]);
-      expect(waterfall.magnitude_db).toHaveLength(3);
-      expect(waterfall.magnitude_db[0]).toHaveLength(3);
+      expect(waterfall.time_slices_ms[0]).toBeCloseTo(0, 3);
+      expect(waterfall.time_slices_ms[1]).toBeCloseTo(100, 3);
+      expect(waterfall.magnitude_db).toHaveLength(2);
+      expect(waterfall.magnitude_db[0]).toEqual([80, 75, 70]);
+      // NaN bins are floored to -200 dB to keep the matrix finite.
+      expect(waterfall.magnitude_db[1][1]).toBe(-200);
+      // Blocking mode is restored to its previous (disabled) state.
+      expect(blockingEnabled).toBe(false);
     });
 
-    it('should get RT60 data', async () => {
+    it('should get RT60 data from the frequency-keyed result map', async () => {
       server.use(
         http.get('http://127.0.0.1:4735/measurements/test-uuid/rt60', () => {
           return HttpResponse.json({
-            frequencies: encodeREWFloatArray([125, 250, 500]),
-            t20: encodeREWFloatArray([0.3, 0.25, 0.2]),
-            t30: encodeREWFloatArray([0.35, 0.28, 0.22]),
-            edt: encodeREWFloatArray([0.32, 0.26, 0.21])
+            '0.0': { fc: 0.0, octaveFrac: 1, EDT: 0.5, T20: 0.4, T30: 0.45, Topt: 0.6 },
+            '125.0': { fc: 125.0, octaveFrac: 1, EDT: 0.32, T20: 0.3, T30: 0.35, Topt: 0.36 },
+            '250.0': { fc: 250.0, octaveFrac: 1, EDT: 0.26, T20: 0.25, T30: 0.28, Topt: 0.29 },
+            '500.0': { fc: 500.0, octaveFrac: 1, EDT: 0.21, T20: 0.2, T30: 0.22, Topt: 0.23 }
           });
         })
       );
       const client = new REWApiClient();
       const rt60 = await client.getRT60('test-uuid');
-      expect(rt60.frequencies_hz).toHaveLength(3);
-      // Use toBeCloseTo for floating-point values
-      expect(rt60.t30_seconds[0]).toBeCloseTo(0.35, 2);
-      expect(rt60.t30_seconds[1]).toBeCloseTo(0.28, 2);
-      expect(rt60.t30_seconds[2]).toBeCloseTo(0.22, 2);
-      expect(rt60.t20_seconds[0]).toBeCloseTo(0.3, 2);
-      expect(rt60.edt_seconds[0]).toBeCloseTo(0.32, 2);
+      // Bands are sorted by centre frequency; the broadband "0.0" band sorts first.
+      expect(rt60.frequencies_hz).toEqual([0, 125, 250, 500]);
+      expect(rt60.t30_seconds[1]).toBeCloseTo(0.35, 2);
+      expect(rt60.t30_seconds[2]).toBeCloseTo(0.28, 2);
+      expect(rt60.t20_seconds[1]).toBeCloseTo(0.3, 2);
+      expect(rt60.edt_seconds[1]).toBeCloseTo(0.32, 2);
+      expect(rt60.topt_seconds?.[1]).toBeCloseTo(0.36, 2);
     });
 
     it('should pass octaveFrac parameter to RT60 endpoint', async () => {
@@ -520,10 +542,7 @@ describe('REWApiClient', () => {
         http.get('http://127.0.0.1:4735/measurements/test-uuid/rt60', ({ request }) => {
           capturedUrl = request.url;
           return HttpResponse.json({
-            frequencies: encodeREWFloatArray([125]),
-            t20: encodeREWFloatArray([0.3]),
-            t30: encodeREWFloatArray([0.35]),
-            edt: encodeREWFloatArray([0.32])
+            '125.0': { fc: 125.0, octaveFrac: 3, EDT: 0.32, T20: 0.3, T30: 0.35 }
           });
         })
       );
@@ -538,10 +557,7 @@ describe('REWApiClient', () => {
         http.get('http://127.0.0.1:4735/measurements/test-uuid/rt60', ({ request }) => {
           capturedUrl = request.url;
           return HttpResponse.json({
-            frequencies: encodeREWFloatArray([125]),
-            t20: encodeREWFloatArray([0.3]),
-            t30: encodeREWFloatArray([0.35]),
-            edt: encodeREWFloatArray([0.32])
+            '125.0': { fc: 125.0, octaveFrac: 3, EDT: 0.32, T20: 0.3, T30: 0.35 }
           });
         })
       );

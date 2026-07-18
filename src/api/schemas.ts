@@ -321,7 +321,8 @@ export const RT60Schema = z.object({
   frequencies_hz: z.array(z.number()),
   t20_seconds: z.array(z.number()),
   t30_seconds: z.array(z.number()),
-  edt_seconds: z.array(z.number())
+  edt_seconds: z.array(z.number()),
+  topt_seconds: z.array(z.number()).optional()
 }).passthrough();
 
 export type RT60Data = z.infer<typeof RT60Schema>;
