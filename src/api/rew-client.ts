@@ -388,11 +388,11 @@ export class REWApiClient {
       // Current REW returns measurements as an index-keyed object; the array
       // form is a legacy/assumed shape kept for back-compat.
       const measurementData = measurementsResponse.data;
-      const measurementIsObject = measurementData != null && typeof measurementData === 'object';
+      const measurementIsObject = measurementData !== null && typeof measurementData === 'object';
       // Hard-fail on an unexpected shape rather than silently reporting 0 measurements:
       // a non-null primitive body means the response contract is not what we understand
       // (most likely an incompatible REW API version).
-      if (measurementData != null && !measurementIsObject) {
+      if (measurementData !== null && measurementData !== undefined && !measurementIsObject) {
         return {
           connected: false,
           api_version: apiVersion,
@@ -518,7 +518,7 @@ export class REWApiClient {
   async listMeasurements(): Promise<MeasurementInfo[]> {
     const response = await this.request('GET', '/measurements');
 
-    if (response.status !== 200 || response.data == null || typeof response.data !== 'object') {
+    if (response.status !== 200 || response.data === null || typeof response.data !== 'object') {
       return [];
     }
 
