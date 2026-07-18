@@ -1324,19 +1324,20 @@ export class REWApiClient {
 
   /**
    * Start input level monitoring
-   * API expects: { command: "start" }
+   * API expects a Command body: { command: "Start", parameters: [] }
+   * (canonical casing per GET /input-levels/commands)
    */
   async startInputLevelMonitoring(): Promise<boolean> {
-    const response = await this.request('POST', '/input-levels/command', { command: 'start' });
+    const response = await this.request('POST', '/input-levels/command', { command: 'Start', parameters: [] });
     return response.status === 200 || response.status === 202;
   }
 
   /**
    * Stop input level monitoring
-   * API expects: { command: "stop" }
+   * API expects a Command body: { command: "Stop", parameters: [] }
    */
   async stopInputLevelMonitoring(): Promise<boolean> {
-    const response = await this.request('POST', '/input-levels/command', { command: 'stop' });
+    const response = await this.request('POST', '/input-levels/command', { command: 'Stop', parameters: [] });
     return response.status === 200 || response.status === 202;
   }
 
@@ -1353,17 +1354,15 @@ export class REWApiClient {
 
   /**
    * Get latest input levels (RMS and peak per channel)
-   * @param unit - Optional unit (e.g., "dBFS")
+   *
+   * The unit is determined by REW's input level configuration and reported
+   * in the response. GET /input-levels/last-levels takes no query parameters
+   * (API 0.9.5); any unit selection must be made via REW itself.
+   *
    * @returns InputLevels object or null if monitoring not active or validation fails
    */
-  async getInputLevels(unit?: string): Promise<InputLevels | null> {
-    let path = '/input-levels/last-levels';
-    if (unit) {
-      const params = new URLSearchParams({ unit });
-      path += `?${params.toString()}`;
-    }
-
-    const response = await this.request('GET', path);
+  async getInputLevels(): Promise<InputLevels | null> {
+    const response = await this.request('GET', '/input-levels/last-levels');
 
     if (response.status !== 200 || !response.data) {
       return null;

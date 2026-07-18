@@ -125,7 +125,7 @@ export interface REWClientLike {
   startInputLevelMonitoring(): Promise<boolean>;
   stopInputLevelMonitoring(): Promise<boolean>;
   getInputLevelUnits(): Promise<string[]>;
-  getInputLevels(unit?: string): Promise<InputLevels | null>;
+  getInputLevels(): Promise<InputLevels | null>;
   // P1 additions
   getMeasurementCommands?(uuid: string): Promise<string[]>;
   executeMeasurementCommand?(uuid: string, command: string, parameters?: string[]): Promise<unknown>;

@@ -1349,12 +1349,12 @@ describe('REWApiClient', () => {
     it('should get input level commands', async () => {
       server.use(
         http.get('http://127.0.0.1:4735/input-levels/commands', () => {
-          return HttpResponse.json(['start', 'stop']);
+          return HttpResponse.json(['Start', 'Stop']);
         })
       );
       const client = new REWApiClient();
       const commands = await client.getInputLevelCommands();
-      expect(commands).toEqual(['start', 'stop']);
+      expect(commands).toEqual(['Start', 'Stop']);
     });
 
     it('should return empty array when input level commands fail', async () => {
@@ -1371,8 +1371,9 @@ describe('REWApiClient', () => {
     it('should start input level monitoring', async () => {
       server.use(
         http.post('http://127.0.0.1:4735/input-levels/command', async ({ request }) => {
-          const body = await request.json() as { command: string };
-          expect(body.command).toBe('start');
+          const body = await request.json() as { command: string; parameters: unknown[] };
+          expect(body.command).toBe('Start');
+          expect(body.parameters).toEqual([]);
           return HttpResponse.json({ success: true });
         })
       );
@@ -1395,8 +1396,9 @@ describe('REWApiClient', () => {
     it('should stop input level monitoring', async () => {
       server.use(
         http.post('http://127.0.0.1:4735/input-levels/command', async ({ request }) => {
-          const body = await request.json() as { command: string };
-          expect(body.command).toBe('stop');
+          const body = await request.json() as { command: string; parameters: unknown[] };
+          expect(body.command).toBe('Stop');
+          expect(body.parameters).toEqual([]);
           return HttpResponse.json({ success: true });
         })
       );
@@ -1470,7 +1472,7 @@ describe('REWApiClient', () => {
       expect(levels).toBeNull();
     });
 
-    it('should pass unit parameter in query string', async () => {
+    it('should request last-levels without a query string (API 0.9.5 takes no params)', async () => {
       let capturedUrl: string | undefined;
       server.use(
         http.get('http://127.0.0.1:4735/input-levels/last-levels', ({ request }) => {
@@ -1484,8 +1486,8 @@ describe('REWApiClient', () => {
         })
       );
       const client = new REWApiClient();
-      await client.getInputLevels('dBFS');
-      expect(capturedUrl).toContain('unit=dBFS');
+      await client.getInputLevels();
+      expect(capturedUrl).not.toContain('?');
     });
   });
 });
