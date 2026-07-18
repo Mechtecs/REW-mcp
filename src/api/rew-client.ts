@@ -6,7 +6,7 @@
  */
 
 import { decodeREWFloatArray } from './base64-decoder.js';
-import type { FrequencyResponseData, ImpulseResponseData, GroupDelayData, DistortionData } from '../types/index.js';
+import type { FrequencyResponseData, ImpulseResponseData, GroupDelayData, DistortionData, WaterfallData } from '../types/index.js';
 import { REWApiError } from './rew-api-error.js';
 import {
   MeasurementInfoSchema,
@@ -32,7 +32,9 @@ import {
   type MeasSweepConfiguration,
   type MeasureValue,
   type MeasurementNaming,
-  type MeasureCommandResult
+  type MeasureCommandResult,
+  type RT60Data,
+  type CommandExecutionResult
 } from './schemas.js';
 import type {
   Signal,
@@ -142,12 +144,6 @@ export interface ImpulseResponseOptions {
   windowed?: boolean;
 }
 
-export interface WaterfallData {
-  frequencies_hz: number[];
-  time_slices_ms: number[];
-  magnitude_db: number[][]; // [time_index][freq_index]
-}
-
 export interface WaterfallOptions {
   mode?: string; // "Fourier" (default) or "Burst decay"
   slices?: number;
@@ -159,13 +155,6 @@ export interface WaterfallOptions {
   useCsdMode?: boolean;
   ppo?: number;
   smoothing?: string;
-}
-
-export interface RT60Data {
-  frequencies_hz: number[];
-  t20_seconds: number[];
-  t30_seconds: number[];
-  edt_seconds: number[];
 }
 
 /**
@@ -1624,11 +1613,7 @@ export class REWApiClient {
    * "Generate minimum phase", "Smooth", "Normalise", "Invert", "Offset",
    * "Trim IR", "Window", "Time align", "Delete", etc.
    */
-  async executeMeasurementCommand(uuid: string, command: string, parameters?: string[]): Promise<{
-    success: boolean;
-    status: number;
-    data?: unknown;
-  }> {
+  async executeMeasurementCommand(uuid: string, command: string, parameters?: string[]): Promise<CommandExecutionResult> {
     const response = await this.request('POST', `/measurements/${uuid}/command`, {
       command,
       parameters: parameters || [],
@@ -1658,11 +1643,7 @@ export class REWApiClient {
   /**
    * Execute a bulk measurement command (Load, Save all, Dirac pulse, etc.)
    */
-  async executeMeasurementsCommand(command: string, parameters?: string[]): Promise<{
-    success: boolean;
-    status: number;
-    data?: unknown;
-  }> {
+  async executeMeasurementsCommand(command: string, parameters?: string[]): Promise<CommandExecutionResult> {
     const response = await this.request('POST', '/measurements/command', {
       command,
       parameters: parameters || [],

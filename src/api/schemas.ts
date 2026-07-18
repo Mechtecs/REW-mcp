@@ -102,6 +102,16 @@ export interface MeasureCommandResult {
   proLicenseRequired?: boolean;
 }
 
+/**
+ * Generic result of a command execution endpoint (`.../command`). The `data`
+ * payload varies by command, so it is intentionally left as `unknown`.
+ */
+export interface CommandExecutionResult {
+  success: boolean;
+  status: number;
+  data?: unknown;
+}
+
 // Measure level schema
 export const MeasureLevelSchema = z.object({
   level: z.number().optional(),

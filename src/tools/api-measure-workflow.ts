@@ -425,7 +425,7 @@ async function calibrateLevel(
   await new Promise(resolve => setTimeout(resolve, 1000));
 
   // Try to read SPL meter
-  const splLevels = await client.getSPLMeterLevels(1) as { spl?: number; leq?: number; sel?: number } | undefined;
+  const splLevels = await client.getSPLMeterLevels(1);
 
   let recommendation: string;
 
