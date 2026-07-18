@@ -2286,7 +2286,11 @@ export class REWApiClient {
   }
 
   /**
-   * Create a new measurement group
+   * Create a new measurement group.
+   *
+   * Body is a partial GroupInfo ({name}); REW assigns the uuid. Although the
+   * spec declares the response as APIResponse, live REW (0.9.5) returns the
+   * created GroupInfo including the assigned uuid, which is read back here.
    */
   async createGroup(name: string): Promise<{ id: string }> {
     const response = await this.request('POST', '/groups', { name });
@@ -2344,11 +2348,36 @@ export class REWApiClient {
   }
 
   /**
-   * Remove a measurement from a group
+   * Remove a measurement from a group, leaving the group and its other members
+   * intact.
+   *
+   * The REW API (0.9.5) has no direct "remove from group" endpoint. Group
+   * membership is singular and deleting a group ungroups its members, so this
+   * moves the measurement into a throwaway group and deletes that group, which
+   * leaves the measurement ungrouped. Verified live against REW 5.40 Beta 130.
+   *
+   * The measurement must currently be in `groupId`; otherwise this is a no-op
+   * that returns false (nothing was removed from the requested group).
    */
   async removeMeasurementFromGroup(groupId: string, measurementUuid: string): Promise<boolean> {
-    const response = await this.request('DELETE', `/groups/${groupId}/measurements/${measurementUuid}`);
-    return response.status === 200 || response.status === 204;
+    // Guard: only act if the measurement is actually in the requested group.
+    const members = await this.getGroupMeasurements(groupId);
+    const isMember = members.some(
+      (m) => (m as { uuid?: string }).uuid === measurementUuid
+    );
+    if (!isMember) {
+      return false;
+    }
+
+    // Move the measurement into a throwaway group (removes it from groupId),
+    // then delete that group to leave the measurement ungrouped.
+    const temp = await this.createGroup(`__rew-mcp-ungroup-${measurementUuid}__`);
+    if (!temp.id) {
+      return false;
+    }
+    const moved = await this.addMeasurementToGroup(temp.id, measurementUuid);
+    const deleted = await this.deleteGroup(temp.id);
+    return moved && deleted;
   }
 
   // ============================================================

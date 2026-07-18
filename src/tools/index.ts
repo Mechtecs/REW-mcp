@@ -198,7 +198,7 @@ export function registerTools(server: Server): void {
         {
           name: 'rew_api_groups',
           title: 'Measurement Groups',
-          description: 'Manage measurement groups via API. Actions: list, create, get, update, delete, list_measurements, add_measurement, remove_measurement.',
+          description: 'Manage measurement groups via API. Actions: list, create, get, update, delete, list_measurements, add_measurement, remove_measurement. add_measurement moves a measurement into a group (membership is singular, so it leaves any previous group). remove_measurement leaves the measurement ungrouped; REW has no direct remove endpoint, so it is emulated by moving the measurement into a throwaway group and deleting that group.',
           inputSchema: zodToJsonSchema(ApiGroupsInputSchema)
         },
         {

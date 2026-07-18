@@ -1621,4 +1621,75 @@ describe('REWApiClient', () => {
       expect(data.magnitude_db.map(v => Math.round(v))).toEqual([-20, -18]);
     });
   });
+
+  describe('Group methods', () => {
+    it('should read the assigned uuid from the create-group response', async () => {
+      server.use(
+        http.post('http://127.0.0.1:4735/groups', () =>
+          // Live REW returns the created GroupInfo (spec says APIResponse).
+          HttpResponse.json({ name: 'claude-test', notes: '', uuid: 'e709103d-7f5c-1000-b78c-7da631167d4a' }))
+      );
+      const client = new REWApiClient();
+      const result = await client.createGroup('claude-test');
+      expect(result.id).toBe('e709103d-7f5c-1000-b78c-7da631167d4a');
+    });
+
+    it('should add a measurement to a group via its uuid', async () => {
+      let body: unknown;
+      server.use(
+        http.post('http://127.0.0.1:4735/groups/g1/measurements', async ({ request }) => {
+          body = await request.json();
+          return HttpResponse.json({ message: 'added' });
+        })
+      );
+      const client = new REWApiClient();
+      const ok = await client.addMeasurementToGroup('g1', 'meas-uuid');
+      expect(ok).toBe(true);
+      expect(body).toEqual({ uuid: 'meas-uuid' });
+    });
+
+    it('should emulate remove-from-group via a throwaway group', async () => {
+      const calls: string[] = [];
+      server.use(
+        // Measurement is a member of the requested group.
+        http.get('http://127.0.0.1:4735/groups/g1/measurements', () =>
+          HttpResponse.json([{ uuid: 'meas-uuid' }])),
+        // createGroup returns the assigned uuid.
+        http.post('http://127.0.0.1:4735/groups', () => {
+          calls.push('create');
+          return HttpResponse.json({ name: 'tmp', uuid: 'tmp-uuid' });
+        }),
+        // move into the throwaway group.
+        http.post('http://127.0.0.1:4735/groups/tmp-uuid/measurements', () => {
+          calls.push('move');
+          return HttpResponse.json({ message: 'added' });
+        }),
+        // delete the throwaway group -> ungroups the measurement.
+        http.delete('http://127.0.0.1:4735/groups/tmp-uuid', () => {
+          calls.push('delete');
+          return HttpResponse.json({ message: 'Group deleted' });
+        })
+      );
+      const client = new REWApiClient();
+      const ok = await client.removeMeasurementFromGroup('g1', 'meas-uuid');
+      expect(ok).toBe(true);
+      expect(calls).toEqual(['create', 'move', 'delete']);
+    });
+
+    it('should be a no-op when the measurement is not in the group', async () => {
+      let createCalled = false;
+      server.use(
+        http.get('http://127.0.0.1:4735/groups/g1/measurements', () =>
+          HttpResponse.json([{ uuid: 'other-uuid' }])),
+        http.post('http://127.0.0.1:4735/groups', () => {
+          createCalled = true;
+          return HttpResponse.json({ name: 'tmp', uuid: 'tmp-uuid' });
+        })
+      );
+      const client = new REWApiClient();
+      const ok = await client.removeMeasurementFromGroup('g1', 'meas-uuid');
+      expect(ok).toBe(false);
+      expect(createCalled).toBe(false);
+    });
+  });
 });
