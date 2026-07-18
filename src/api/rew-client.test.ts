@@ -118,6 +118,27 @@ describe('REWApiClient', () => {
       expect(measurements[0].name).toBe('Left Main');
     });
 
+    it('should parse REW index-keyed object response with title field', async () => {
+      server.use(
+        http.get('http://127.0.0.1:4735/measurements', () => {
+          // Real REW returns an object keyed by 1-based index, using `title`.
+          return HttpResponse.json({
+            '1': { uuid: 'uuid-1', title: 'Measurement One' },
+            '2': { uuid: 'uuid-2', title: 'Measurement Two' }
+          });
+        })
+      );
+
+      const client = new REWApiClient();
+      const measurements = await client.listMeasurements();
+
+      expect(measurements).toHaveLength(2);
+      expect(measurements[0].uuid).toBe('uuid-1');
+      expect(measurements[0].name).toBe('Measurement One');
+      expect(measurements[0].index).toBe(1);
+      expect(measurements[1].name).toBe('Measurement Two');
+    });
+
     it('should return empty array when no measurements exist', async () => {
       server.use(
         http.get('http://127.0.0.1:4735/measurements', () => {

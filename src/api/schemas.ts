@@ -34,7 +34,9 @@ export type REWApiResponse = z.infer<typeof REWApiResponseSchema>;
 // Measurement info from list endpoint
 export const MeasurementInfoSchema = z.object({
   uuid: z.string(),
-  name: z.string(),
+  // REW's /measurements endpoint labels measurements with `title`, not `name`,
+  // so `name` must be optional for real REW responses to parse.
+  name: z.string().optional(),
   index: z.number().optional(),
   type: z.string().optional(),
   has_ir: z.boolean().optional(),

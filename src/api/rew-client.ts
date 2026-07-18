@@ -275,9 +275,14 @@ export class REWApiClient {
         };
       }
 
-      const measurementCount = Array.isArray(measurementsResponse.data) 
-        ? measurementsResponse.data.length 
-        : 0;
+      // Current REW returns measurements as an index-keyed object; the array
+      // form is a legacy/assumed shape kept for back-compat.
+      const measurementData = measurementsResponse.data;
+      const measurementCount = Array.isArray(measurementData)
+        ? measurementData.length // legacy array form
+        : (measurementData && typeof measurementData === 'object'
+          ? Object.keys(measurementData).length
+          : 0);
 
       // Try to get application info (optional - may not exist in all versions)
       const appResponse = await this.request('GET', '/application');
@@ -383,30 +388,30 @@ export class REWApiClient {
   async listMeasurements(): Promise<MeasurementInfo[]> {
     const response = await this.request('GET', '/measurements');
 
-    if (response.status !== 200 || !Array.isArray(response.data)) {
+    if (response.status !== 200 || response.data == null || typeof response.data !== 'object') {
       return [];
     }
 
-    return response.data.map((m: unknown, index: number) => {
+    // Current REW returns measurements as an object keyed by a 1-based index
+    // string ({ "1": {...}, "2": {...} }). The array shape is a legacy/assumed
+    // form kept for back-compat. Normalise both to [indexKey, measurement] pairs.
+    const entries: Array<[string, unknown]> = Array.isArray(response.data)
+      ? response.data.map((m, i) => [String(i + 1), m]) // legacy array form
+      : Object.entries(response.data as Record<string, unknown>);
+
+    return entries.map(([key, m]) => {
+      const rec = (m ?? {}) as Record<string, unknown>;
       const parsed = MeasurementInfoSchema.safeParse(m);
-      if (!parsed.success) {
-        // Fallback for malformed data
-        return {
-          uuid: String((m as Record<string, unknown>)?.uuid ?? (m as Record<string, unknown>)?.id ?? `measurement-${index}`),
-          name: String((m as Record<string, unknown>)?.name ?? `Measurement ${index + 1}`),
-          index,
-          type: 'unknown',
-          has_ir: false,
-          has_fr: false
-        };
-      }
+      const data: Record<string, unknown> = parsed.success ? parsed.data : rec;
+      const keyIndex = Number.parseInt(key, 10);
       return {
-        uuid: parsed.data.uuid || parsed.data.id || `measurement_${index}`,
-        name: parsed.data.name || `Measurement ${index + 1}`,
-        index: parsed.data.index ?? index,
-        type: parsed.data.type || 'unknown',
-        has_ir: parsed.data.has_ir ?? (parsed.data.hasImpulse !== false),
-        has_fr: parsed.data.has_fr ?? (parsed.data.hasFrequencyResponse !== false)
+        uuid: String(data.uuid ?? data.id ?? `measurement_${key}`),
+        // REW uses `title`; assumed/legacy shapes use `name`.
+        name: String(data.name ?? data.title ?? `Measurement ${key}`),
+        index: typeof data.index === 'number' ? data.index : (Number.isNaN(keyIndex) ? 0 : keyIndex),
+        type: typeof data.type === 'string' ? data.type : 'unknown',
+        has_ir: typeof data.has_ir === 'boolean' ? data.has_ir : (data.hasImpulse !== false),
+        has_fr: typeof data.has_fr === 'boolean' ? data.has_fr : (data.hasFrequencyResponse !== false)
       };
     });
   }
@@ -425,10 +430,11 @@ export class REWApiClient {
 
     return {
       uuid: (data.uuid as string) || uuid,
-      name: (data.name as string) || 'Unknown',
+      // REW labels measurements with `title`; `name` is the assumed/legacy key.
+      name: (data.name as string) || (data.title as string) || 'Unknown',
       metadata: {
         sample_rate_hz: data.sampleRate as number | undefined,
-        start_time: data.startTime as string | undefined,
+        start_time: (data.startTime as string) || (data.date as string) || undefined,
         notes: data.notes as string | undefined
       }
     };
