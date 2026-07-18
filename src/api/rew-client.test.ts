@@ -915,7 +915,7 @@ describe('REWApiClient', () => {
     it('should get generator status', async () => {
       server.use(
         http.get('http://127.0.0.1:4735/generator/signal', () => {
-          return HttpResponse.json('pinknoise');
+          return HttpResponse.json({ signal: 'pinknoise' });
         }),
         http.get('http://127.0.0.1:4735/generator/level', () => {
           return HttpResponse.json({ value: -18, unit: 'dBFS' });
@@ -943,26 +943,30 @@ describe('REWApiClient', () => {
       expect(signals).toEqual(['pinknoise', 'whitenoise', 'sine']);
     });
 
-    it('should set generator signal using PUT', async () => {
+    it('should set generator signal via POST with a Signal body', async () => {
+      let body: unknown;
       server.use(
-        http.put('http://127.0.0.1:4735/generator/signal', () => {
-          return HttpResponse.json({ status: 200 });
+        http.post('http://127.0.0.1:4735/generator/signal', async ({ request }) => {
+          body = await request.json();
+          return HttpResponse.json({ message: 'pinknoise selected' });
         })
       );
       const client = new REWApiClient();
       const result = await client.setGeneratorSignal('pinknoise');
       expect(result).toBe(true);
+      expect(body).toEqual({ signal: 'pinknoise' });
     });
 
-    it('should get generator level', async () => {
+    it('should get generator level as a Value { value, unit }', async () => {
       server.use(
         http.get('http://127.0.0.1:4735/generator/level', () => {
-          return HttpResponse.json({ level: -18, unit: 'dBFS' });
+          return HttpResponse.json({ value: -18, unit: 'dBFS' });
         })
       );
       const client = new REWApiClient();
       const level = await client.getGeneratorLevel();
-      expect(level.level).toBe(-18);
+      expect(level.value).toBe(-18);
+      expect(level.unit).toBe('dBFS');
     });
 
     it('should set generator frequency', async () => {
@@ -1192,10 +1196,10 @@ describe('REWApiClient', () => {
   });
 
   describe('Additional generator methods', () => {
-    it('should get generator signal', async () => {
+    it('should get generator signal from a Signal object', async () => {
       server.use(
         http.get('http://127.0.0.1:4735/generator/signal', () => {
-          return HttpResponse.json('pinknoise');
+          return HttpResponse.json({ signal: 'pinknoise' });
         })
       );
       const client = new REWApiClient();
@@ -1203,15 +1207,26 @@ describe('REWApiClient', () => {
       expect(signal).toBe('pinknoise');
     });
 
-    it('should get generator frequency', async () => {
+    it('should get generator frequency from a Value object', async () => {
       server.use(
         http.get('http://127.0.0.1:4735/generator/frequency', () => {
-          return HttpResponse.json(1000);
+          return HttpResponse.json({ value: 1000, unit: 'Hz' });
         })
       );
       const client = new REWApiClient();
       const freq = await client.getGeneratorFrequency();
       expect(freq).toBe(1000);
+    });
+
+    it('should return 0 generator frequency when value is omitted (noise)', async () => {
+      server.use(
+        http.get('http://127.0.0.1:4735/generator/frequency', () => {
+          return HttpResponse.json({ unit: 'Hz' });
+        })
+      );
+      const client = new REWApiClient();
+      const freq = await client.getGeneratorFrequency();
+      expect(freq).toBe(0);
     });
 
     it('should set generator level', async () => {

@@ -364,7 +364,7 @@ async function checkLevels(
   options?: ApiMeasureWorkflowInput['measurement']
 ): Promise<ToolResponse<ApiMeasureWorkflowResult>> {
   // Start generator with pink noise for level check
-  await client.setGeneratorSignal('Pink noise');
+  await client.setGeneratorSignal('pinknoise');
   const level = options?.level_dbfs ?? -12;
   await client.setGeneratorLevel(level, 'dBFS');
   
@@ -414,7 +414,7 @@ async function calibrateLevel(
   const targetSPL = options?.target_spl_db || 75;
 
   // Start with pink noise
-  await client.setGeneratorSignal('Pink noise');
+  await client.setGeneratorSignal('pinknoise');
   
   // Start at -20 dBFS and adjust
   let currentLevel = -20;

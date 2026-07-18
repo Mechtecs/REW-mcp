@@ -457,7 +457,7 @@ describe('executeApiMeasureWorkflow', () => {
         action: 'check_levels'
       });
 
-      expect(mockClient.setGeneratorSignal).toHaveBeenCalledWith('Pink noise');
+      expect(mockClient.setGeneratorSignal).toHaveBeenCalledWith('pinknoise');
       expect(mockClient.setGeneratorLevel).toHaveBeenCalledWith(-12, 'dBFS');
       expect(mockClient.executeMeasureCommand).toHaveBeenCalledWith('Check levels');
       expect(mockClient.executeGeneratorCommand).toHaveBeenCalledWith('Stop');
@@ -572,7 +572,7 @@ describe('executeApiMeasureWorkflow', () => {
 
       const result = await promise;
 
-      expect(mockClient.setGeneratorSignal).toHaveBeenCalledWith('Pink noise');
+      expect(mockClient.setGeneratorSignal).toHaveBeenCalledWith('pinknoise');
       expect(mockClient.setGeneratorLevel).toHaveBeenCalledWith(-20, 'dBFS');
       expect(mockClient.executeGeneratorCommand).toHaveBeenCalledWith('Start');
       expect(mockClient.getSPLMeterLevels).toHaveBeenCalledWith(1);

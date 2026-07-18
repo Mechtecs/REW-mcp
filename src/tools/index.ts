@@ -132,7 +132,7 @@ export function registerTools(server: Server): void {
         {
           name: 'rew_api_generator',
           title: 'Control REW Signal Generator',
-          description: 'Control REW signal generator via API. Generate test tones, pink noise, sweeps. Actions: status, start, stop, set_signal, set_level, set_frequency, list_signals.',
+          description: 'Control REW signal generator via API. Generate test tones, pink noise, sweeps. Actions: status, start, stop, set_signal, set_level, set_frequency, list_signals. set_signal expects a valid REW signal name from list_signals (e.g. "pinknoise", "logsweep", "sine") — not a display string like "Pink noise".',
           inputSchema: zodToJsonSchema(ApiGeneratorInputSchema)
         },
         {

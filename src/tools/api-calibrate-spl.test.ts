@@ -68,7 +68,7 @@ describe('executeApiCalibrateSPL', () => {
       await vi.advanceTimersByTimeAsync(3000);
       await promise;
 
-      expect(mockClient.setGeneratorSignal).toHaveBeenCalledWith('Pink noise');
+      expect(mockClient.setGeneratorSignal).toHaveBeenCalledWith('pinknoise');
     });
 
     it('should set generator level to -20 dBFS', async () => {

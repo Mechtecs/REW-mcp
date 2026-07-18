@@ -66,7 +66,7 @@ export async function executeApiCalibrateSPL(input: ApiCalibrateSPLInput): Promi
     switch (validated.action) {
       case 'start': {
         // Step 1: Configure generator for pink noise at -20 dBFS
-        const signalSet = await client.setGeneratorSignal('Pink noise');
+        const signalSet = await client.setGeneratorSignal('pinknoise');
         if (!signalSet) {
           return {
             status: 'error',

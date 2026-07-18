@@ -34,6 +34,7 @@ import {
   type MeasurementNaming,
   type MeasureCommandResult
 } from './schemas.js';
+import type { Signal, Value } from './generated/rew-api.js';
 
 /**
  * REW REST API contract version this client was written and verified against.
@@ -1149,11 +1150,12 @@ export class REWApiClient {
       this.request('GET', '/generator/level'),
       this.request('GET', '/generator/commands'),
     ]);
-    const levelData = levelResp.status === 200 ? levelResp.data as Record<string, unknown> : {};
+    const levelData = levelResp.status === 200 ? levelResp.data as Value : {};
+    const signalData = signalResp.status === 200 ? signalResp.data as Signal : {};
     return {
-      signal: signalResp.status === 200 ? (signalResp.data as string) : 'unknown',
-      level: (levelData?.value as number) ?? 0,
-      level_unit: (levelData?.unit as string) ?? 'dBFS',
+      signal: signalData.signal ?? 'unknown',
+      level: levelData.value ?? 0,
+      level_unit: levelData.unit ?? 'dBFS',
       available_commands: commandsResp.status === 200 && Array.isArray(commandsResp.data) ? commandsResp.data : [],
     };
   }
@@ -1170,37 +1172,37 @@ export class REWApiClient {
   }
 
   /**
-   * Get current generator signal
+   * Get current generator signal name.
+   * Response is Signal { signal }, not a bare string.
    */
   async getGeneratorSignal(): Promise<string> {
     const response = await this.request('GET', '/generator/signal');
     if (response.status !== 200) {
       this.handleResponseError(response, 'Generator signal');
     }
-    return response.data as string;
+    return (response.data as Signal).signal ?? '';
   }
 
   /**
-   * Set generator signal
-   *
-   * Per REW API docs: "A PUT selects a new signal"
-   * The PUT body should be the signal object/name
+   * Set generator signal.
+   * Uses POST (there is no PUT) with a Signal body { signal: "<name>" }.
+   * Valid names come from GET /generator/signals (e.g. "pinknoise",
+   * "logsweep"), not display strings like "Pink noise".
    */
   async setGeneratorSignal(signal: string): Promise<boolean> {
-    // REW API docs specify PUT for signal selection
-    const response = await this.request('PUT', '/generator/signal', signal);
+    const response = await this.request('POST', '/generator/signal', { signal });
     return response.status === 200;
   }
 
   /**
-   * Get generator level
+   * Get generator level as a Value { value, unit }.
    */
-  async getGeneratorLevel(): Promise<{ level: number; unit: string }> {
+  async getGeneratorLevel(): Promise<Value> {
     const response = await this.request('GET', '/generator/level');
     if (response.status !== 200) {
       this.handleResponseError(response, 'Generator level');
     }
-    return response.data as { level: number; unit: string };
+    return response.data as Value;
   }
 
   /**
@@ -1215,14 +1217,16 @@ export class REWApiClient {
   }
 
   /**
-   * Get generator frequency (for tone signals)
+   * Get generator frequency (for tone signals) in Hz.
+   * Response is a Value { value, unit }; `value` is omitted for noise signals,
+   * so this returns 0 when no tone frequency is set.
    */
   async getGeneratorFrequency(): Promise<number> {
     const response = await this.request('GET', '/generator/frequency');
     if (response.status !== 200) {
       this.handleResponseError(response, 'Generator frequency');
     }
-    return response.data as number;
+    return (response.data as Value).value ?? 0;
   }
 
   /**
