@@ -95,7 +95,7 @@ export function registerTools(server: Server): void {
         {
           name: 'rew_api_connect',
           title: 'Connect to REW API',
-          description: 'Connect to a running REW instance\'s REST API. REW must be launched with -api flag or have API enabled in preferences. Default port is 4735.',
+          description: 'Connect to a running REW instance\'s REST API. REW must be launched with -api flag or have API enabled in preferences. Default port is 4735. Returns the REW application version (rew_version, e.g. "5.40 Beta 130"), the REST API version (api_version, e.g. "0.9.5"), the number of available measurements, and capability flags.',
           inputSchema: zodToJsonSchema(ApiConnectInputSchema)
         },
         {
