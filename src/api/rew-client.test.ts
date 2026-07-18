@@ -23,12 +23,8 @@ describe('REWApiClient', () => {
   describe('connect()', () => {
     it('should connect successfully when REW is running', async () => {
       server.use(
-        http.get('http://127.0.0.1:4735/doc.json', () => {
-          return HttpResponse.json({
-            info: { version: '5.30.9' },
-            openapi: '3.0.0',
-            paths: {}
-          });
+        http.get('http://127.0.0.1:4735/version', () => {
+          return HttpResponse.json({ message: '5.30.9 API 0.9.5' });
         }),
         http.get('http://127.0.0.1:4735/measurements', () => {
           return HttpResponse.json([
@@ -48,13 +44,14 @@ describe('REWApiClient', () => {
 
       expect(status.connected).toBe(true);
       expect(status.rew_version).toBe('5.30.9');
+      expect(status.api_version).toBe('0.9.5');
       expect(status.measurements_available).toBe(1);
       expect(status.api_capabilities.pro_features).toBe(true);
     });
 
     it('should return error status when REW not running (connection refused)', async () => {
       server.use(
-        http.get('http://127.0.0.1:4735/doc.json', () => {
+        http.get('http://127.0.0.1:4735/version', () => {
           return HttpResponse.error();  // Network error
         })
       );
@@ -68,7 +65,7 @@ describe('REWApiClient', () => {
 
     it('should return error status when API endpoint not found (404)', async () => {
       server.use(
-        http.get('http://127.0.0.1:4735/doc.json', () => {
+        http.get('http://127.0.0.1:4735/version', () => {
           return new HttpResponse(null, { status: 404 });
         })
       );
@@ -83,8 +80,8 @@ describe('REWApiClient', () => {
 
     it('should handle partial API availability (measurements endpoint missing)', async () => {
       server.use(
-        http.get('http://127.0.0.1:4735/doc.json', () => {
-          return HttpResponse.json({ info: { version: '5.30.9' }, openapi: '3.0.0' });
+        http.get('http://127.0.0.1:4735/version', () => {
+          return HttpResponse.json({ message: '5.30.9 API 0.9.5' });
         }),
         http.get('http://127.0.0.1:4735/measurements', () => {
           return new HttpResponse(null, { status: 404 });
@@ -995,9 +992,12 @@ describe('REWApiClient', () => {
   describe('Health check method', () => {
     it('should return healthy status when API available', async () => {
       server.use(
+        http.get('http://127.0.0.1:4735/version', () => {
+          return HttpResponse.json({ message: '5.30.9 API 0.9.5' });
+        }),
         http.get('http://127.0.0.1:4735/doc.json', () => {
           return HttpResponse.json({
-            info: { version: '5.30.9' },
+            info: { version: '0.9.5' },
             openapi: '3.0.0'
           });
         })
@@ -1006,12 +1006,13 @@ describe('REWApiClient', () => {
       const health = await client.healthCheck();
       expect(health.server_responding).toBe(true);
       expect(health.openapi_available).toBe(true);
-      expect(health.api_version).toBe('5.30.9');
+      expect(health.rew_version).toBe('5.30.9');
+      expect(health.api_version).toBe('0.9.5');
     });
 
     it('should return error when server not responding', async () => {
       server.use(
-        http.get('http://127.0.0.1:4735/doc.json', () => {
+        http.get('http://127.0.0.1:4735/version', () => {
           return HttpResponse.error();
         })
       );
@@ -1257,8 +1258,8 @@ describe('REWApiClient', () => {
 
     it('should disconnect and clear state', async () => {
       server.use(
-        http.get('http://127.0.0.1:4735/doc.json', () => {
-          return HttpResponse.json({ info: { version: '5.30.9' }, openapi: '3.0.0' });
+        http.get('http://127.0.0.1:4735/version', () => {
+          return HttpResponse.json({ message: '5.30.9 API 0.9.5' });
         }),
         http.get('http://127.0.0.1:4735/measurements', () => {
           return HttpResponse.json([]);

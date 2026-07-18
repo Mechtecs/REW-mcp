@@ -32,6 +32,7 @@ export interface REWApiConfig {
 export interface ConnectionStatus {
   connected: boolean;
   rew_version?: string;
+  api_version?: string;
   measurements_available: number;
   api_capabilities: {
     pro_features: boolean;
@@ -205,22 +206,48 @@ export class REWApiClient {
   }
 
   /**
+   * Fetch the REW application and REST API versions from the lightweight
+   * /version endpoint, which returns e.g. { "message": "5.40 Beta 130 API 0.9.5" }.
+   * The application version precedes the "API <x>" marker; the API version follows it.
+   */
+  async getVersion(): Promise<{ status: number; rew_version?: string; api_version?: string; raw?: string; error?: string }> {
+    const response = await this.request('GET', '/version');
+
+    if (response.status !== 200 || !response.data) {
+      return { status: response.status, error: response.error };
+    }
+
+    const message = (response.data as Record<string, unknown>).message as string | undefined;
+    if (!message) {
+      return { status: response.status };
+    }
+
+    const apiMatch = message.match(/\bAPI\s+([\d.]+)/i);
+    return {
+      status: response.status,
+      rew_version: (apiMatch ? message.slice(0, apiMatch.index).trim() : message.trim()) || undefined,
+      api_version: apiMatch?.[1],
+      raw: message
+    };
+  }
+
+  /**
    * Connect to REW API and verify connection
    *
    * Per REW docs, the API is accessible at localhost:4735 by default.
-   * The OpenAPI spec is at /doc.json or /doc.yaml.
-   * Swagger UI is served at the root URL.
+   * Connectivity and version are checked via the lightweight /version endpoint;
+   * the full OpenAPI spec at /doc.json is only fetched when actually needed.
    *
    * NOTE: The /application endpoint may not exist in all REW versions,
-   * so we use /doc.json and /measurements as the primary health checks.
+   * so we use /version and /measurements as the primary health checks.
    */
   async connect(): Promise<ConnectionStatus> {
     try {
-      // First, verify the API server is actually running by checking the OpenAPI spec
-      // This is the most reliable endpoint since swagger-ui serves it
-      const healthCheck = await this.request('GET', '/doc.json');
-      
-      if (healthCheck.status === 0) {
+      // First, verify the API server is actually running via the lightweight
+      // /version endpoint (far cheaper than fetching the full OpenAPI document).
+      const versionInfo = await this.getVersion();
+
+      if (versionInfo.status === 0) {
         // Connection refused - REW not running or API not enabled
         return {
           connected: false,
@@ -229,8 +256,8 @@ export class REWApiClient {
           error_message: `Cannot connect to REW at ${this.baseUrl}. Ensure REW is running and the API is enabled in Preferences → API (click "Start" button).`
         };
       }
-      
-      if (healthCheck.status === 404) {
+
+      if (versionInfo.status === 404) {
         // Server responding but endpoint not found - likely wrong port or old REW version
         return {
           connected: false,
@@ -239,20 +266,18 @@ export class REWApiClient {
           error_message: `REW API endpoint not found (HTTP 404). This usually means: (1) REW version is too old (API requires v5.30+), or (2) The API server isn't started. Check Preferences → API and click "Start". Also verify the port number matches.`
         };
       }
-      
-      if (healthCheck.status !== 200) {
+
+      if (versionInfo.status !== 200) {
         return {
           connected: false,
           measurements_available: 0,
           api_capabilities: { pro_features: false, blocking_mode: false },
-          error_message: healthCheck.error || `Unexpected HTTP ${healthCheck.status} from /doc.json endpoint`
+          error_message: versionInfo.error || `Unexpected HTTP ${versionInfo.status} from /version endpoint`
         };
       }
 
-      // Extract API version from OpenAPI spec
-      const apiVersion = (healthCheck.data as Record<string, unknown>)?.info ?
-        ((healthCheck.data as Record<string, unknown>).info as Record<string, unknown>).version as string :
-        undefined;
+      const apiVersion = versionInfo.api_version;
+      const reportedRewVersion = versionInfo.rew_version;
 
       // Verify we can access measurements endpoint (this is more reliable than /application)
       const measurementsResponse = await this.request('GET', '/measurements');
@@ -284,10 +309,11 @@ export class REWApiClient {
           ? Object.keys(measurementData).length
           : 0);
 
-      // Try to get application info (optional - may not exist in all versions)
+      // Try to get application info (optional - the bare /application endpoint
+      // was removed in current REW builds, so fall back to the parsed /version data)
       const appResponse = await this.request('GET', '/application');
       const appData = appResponse.data as Record<string, unknown> | undefined;
-      const rewVersion = appResponse.status === 200 ? (appData?.version as string) : apiVersion;
+      const rewVersion = (appResponse.status === 200 ? (appData?.version as string) : undefined) || reportedRewVersion;
       const hasProFeatures = appResponse.status === 200 ? ((appData?.proFeatures as boolean) || false) : false;
 
       // Check for blocking mode capability (optional)
@@ -299,6 +325,7 @@ export class REWApiClient {
       return {
         connected: true,
         rew_version: rewVersion,
+        api_version: apiVersion,
         measurements_available: measurementCount,
         api_capabilities: {
           pro_features: hasProFeatures,
@@ -323,47 +350,48 @@ export class REWApiClient {
     server_responding: boolean;
     openapi_available: boolean;
     api_version?: string;
+    rew_version?: string;
     error?: string;
     suggestion?: string;
   }> {
-    // Try the OpenAPI spec first
-    const docResponse = await this.request('GET', '/doc.json');
-    
-    if (docResponse.status === 0) {
+    // Probe the lightweight /version endpoint first for liveness and version info
+    const versionInfo = await this.getVersion();
+
+    if (versionInfo.status === 0) {
       return {
         server_responding: false,
         openapi_available: false,
-        error: docResponse.error || 'Connection refused',
+        error: versionInfo.error || 'Connection refused',
         suggestion: 'REW is not responding. Ensure REW is running and go to Preferences → API → click "Start".'
       };
     }
 
-    if (docResponse.status === 404) {
+    if (versionInfo.status === 404) {
       // Something is responding but it's not the REW API
       return {
         server_responding: true,
         openapi_available: false,
-        error: 'HTTP 404 - API spec not found',
+        error: 'HTTP 404 - /version not found',
         suggestion: 'A server is responding but the REW API is not available. Check: (1) REW version is 5.30+, (2) API is enabled and started in Preferences → API, (3) Port number is correct.'
       };
     }
 
-    if (docResponse.status === 200) {
-      // Extract version from OpenAPI spec if available
-      const docData = docResponse.data as Record<string, unknown> | undefined;
-      const version = docData?.info ? ((docData.info as Record<string, unknown>).version as string) : undefined;
+    if (versionInfo.status !== 200) {
       return {
         server_responding: true,
-        openapi_available: true,
-        api_version: version
+        openapi_available: false,
+        error: `Unexpected status: ${versionInfo.status}`,
+        suggestion: 'Check REW API settings and try restarting the API server.'
       };
     }
 
+    // Server is up; check whether the OpenAPI document is also available (diagnostic only)
+    const docResponse = await this.request('GET', '/doc.json');
     return {
       server_responding: true,
-      openapi_available: false,
-      error: `Unexpected status: ${docResponse.status}`,
-      suggestion: 'Check REW API settings and try restarting the API server.'
+      openapi_available: docResponse.status === 200,
+      api_version: versionInfo.api_version,
+      rew_version: versionInfo.rew_version
     };
   }
 
