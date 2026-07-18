@@ -989,33 +989,55 @@ describe('REWApiClient', () => {
   });
 
   describe('SPL meter methods', () => {
-    it('should get SPL meter levels', async () => {
+    it('should get SPL meter levels as SPLValues', async () => {
       server.use(
         http.get('http://127.0.0.1:4735/spl-meter/1/levels', () => {
           return HttpResponse.json({
+            meterNumber: 1,
             spl: 75.5,
             leq: 74.2,
             sel: 73.8,
-            weighting: 'A',
-            filter: 'None'
+            splWeighting: 'A',
+            leqWeighting: 'A',
+            selWeighting: 'A',
+            filter: 'Fast'
           });
         })
       );
       const client = new REWApiClient();
       const levels = await client.getSPLMeterLevels(1);
       expect(levels.spl).toBe(75.5);
-      expect(levels.weighting).toBe('A');
+      expect(levels.splWeighting).toBe('A');
+      expect(levels.filter).toBe('Fast');
     });
 
-    it('should set SPL meter config', async () => {
+    it('should expand the weighting alias into the three weighting fields', async () => {
+      let body: Record<string, unknown> | undefined;
       server.use(
-        http.post('http://127.0.0.1:4735/spl-meter/1/configuration', () => {
-          return HttpResponse.json({ status: 200 });
+        http.post('http://127.0.0.1:4735/spl-meter/1/configuration', async ({ request }) => {
+          body = await request.json() as Record<string, unknown>;
+          return HttpResponse.json({ message: 'ok' });
         })
       );
       const client = new REWApiClient();
-      const result = await client.setSPLMeterConfig(1, { weighting: 'C' });
+      const result = await client.setSPLMeterConfig(1, { weighting: 'C', filter: 'Slow' });
       expect(result).toBe(true);
+      expect(body).toEqual({ splWeighting: 'C', leqWeighting: 'C', selWeighting: 'C', filter: 'Slow' });
+      // The friendly `weighting` alias must not leak into the posted body.
+      expect(body).not.toHaveProperty('weighting');
+    });
+
+    it('should expand the mode alias into the show flags', async () => {
+      let body: Record<string, unknown> | undefined;
+      server.use(
+        http.post('http://127.0.0.1:4735/spl-meter/1/configuration', async ({ request }) => {
+          body = await request.json() as Record<string, unknown>;
+          return HttpResponse.json({ message: 'ok' });
+        })
+      );
+      const client = new REWApiClient();
+      await client.setSPLMeterConfig(1, { mode: 'Leq' });
+      expect(body).toEqual({ showSPL: false, showLeq: true, showSEL: false });
     });
 
     it('should execute SPL meter command', async () => {
@@ -1312,6 +1334,27 @@ describe('REWApiClient', () => {
       const client = new REWApiClient();
       const config = await client.getSPLMeterConfig(1);
       expect(config).toBeDefined();
+    });
+
+    it('should discover meters by probing configuration ids', async () => {
+      server.use(
+        http.get('http://127.0.0.1:4735/spl-meter/1/configuration', () => HttpResponse.json({ showSPL: true })),
+        http.get('http://127.0.0.1:4735/spl-meter/2/configuration', () => HttpResponse.json({ showSPL: true })),
+        http.get('http://127.0.0.1:4735/spl-meter/3/configuration', () => new HttpResponse(null, { status: 404 }))
+      );
+      const client = new REWApiClient();
+      const meters = await client.getSPLMeters();
+      expect(meters).toEqual([{ id: 1 }, { id: 2 }]);
+    });
+
+    it('should get global weightings and filters', async () => {
+      server.use(
+        http.get('http://127.0.0.1:4735/spl-meter/weightings', () => HttpResponse.json(['A', 'C', 'Z'])),
+        http.get('http://127.0.0.1:4735/spl-meter/filters', () => HttpResponse.json(['Fast', 'Slow']))
+      );
+      const client = new REWApiClient();
+      expect(await client.getSPLMeterWeightings()).toEqual(['A', 'C', 'Z']);
+      expect(await client.getSPLMeterFilters()).toEqual(['Fast', 'Slow']);
     });
   });
 

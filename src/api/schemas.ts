@@ -129,6 +129,50 @@ export interface EQDefaults {
   roomCurveSettings?: EqRoomCurveSettings;
 }
 
+// SPL meter live readout (/spl-meter/{id}/levels → SPLValues).
+export interface SPLValues {
+  meterNumber?: number;
+  splWeighting?: string;
+  leqWeighting?: string;
+  selWeighting?: string;
+  filter?: string;
+  spl?: number;
+  leq?: number;
+  sel?: number;
+  isRollingLeq?: boolean;
+  rollingLeqMinutes?: number;
+  leq1m?: number;
+  leq10m?: number;
+  lcPeak?: number;
+  lzPeak?: number;
+  elapsedTime?: number;
+}
+
+// SPL meter configuration (/spl-meter/{id}/configuration → SPLMeterConfiguration).
+// Note: `filter` is the time weighting (Fast/Slow); the frequency weighting
+// (A/C/Z) is split across splWeighting/leqWeighting/selWeighting.
+export interface SPLMeterConfiguration {
+  showSPL?: boolean;
+  showLeq?: boolean;
+  showSEL?: boolean;
+  splWeighting?: string;
+  leqWeighting?: string;
+  selWeighting?: string;
+  filter?: string;
+  highPassActive?: boolean;
+  rollingLeqActive?: boolean;
+  rollingLeqMinutes?: number;
+}
+
+// Friendly config accepted by the client; convenience aliases are expanded to
+// the real SPLMeterConfiguration fields before posting.
+export interface SPLMeterConfigInput extends SPLMeterConfiguration {
+  /** Sets splWeighting/leqWeighting/selWeighting together (A/C/Z). */
+  weighting?: string;
+  /** 'SPL' | 'Leq' | 'SEL' → showSPL/showLeq/showSEL. */
+  mode?: string;
+}
+
 // Decoded RTA captured data (/rta/captured-data, /rta/captured-peak-data).
 // REW returns a FrequencyResponse whose magnitude/phase are base64 float32
 // arrays; this is the decoded, caller-friendly form. When RTA has no snapshot
@@ -172,7 +216,7 @@ export interface REWClientLike {
   setGeneratorSignal(signal: string): Promise<boolean>;
   setGeneratorLevel(level: number, unit?: string): Promise<boolean>;
   executeGeneratorCommand(command: string): Promise<boolean>;
-  getSPLMeterLevels(meterId: number): Promise<unknown>;
+  getSPLMeterLevels(meterId: number): Promise<SPLValues>;
   getInputLevelCommands(): Promise<string[]>;
   startInputLevelMonitoring(): Promise<boolean>;
   stopInputLevelMonitoring(): Promise<boolean>;

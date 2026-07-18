@@ -138,7 +138,7 @@ export function registerTools(server: Server): void {
         {
           name: 'rew_api_spl_meter',
           title: 'Control REW SPL Meter',
-          description: 'Control REW SPL meter via API for live level monitoring. Supports A/C/Z weighting, Slow/Fast/Impulse response. Actions: start, stop, read, configure.',
+          description: 'Control REW SPL meter via API for live level monitoring. Supports A/C/Z frequency weighting and Fast/Slow time weighting. Actions: start, stop, read, configure, list_meters. read returns spl/leq/sel plus the meter\'s splWeighting and filter; list_meters discovers meters by probing (REW has no meter-list endpoint).',
           inputSchema: zodToJsonSchema(ApiSPLMeterInputSchema)
         },
         {

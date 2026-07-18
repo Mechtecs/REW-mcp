@@ -25,7 +25,10 @@ import {
   type EqTargetSettings,
   type EqRoomCurveSettings,
   type EQDefaults,
-  type RTACapturedData
+  type RTACapturedData,
+  type SPLValues,
+  type SPLMeterConfiguration,
+  type SPLMeterConfigInput
 } from './schemas.js';
 
 /**
@@ -1269,26 +1272,18 @@ export class REWApiClient {
   }
 
   /**
-   * Get SPL meter levels
+   * Get SPL meter levels.
+   *
+   * Returns the full SPLValues payload. Note the frequency weighting is split
+   * into splWeighting/leqWeighting/selWeighting (there is no single `weighting`
+   * field), and `filter` is the time weighting (Fast/Slow).
    */
-  async getSPLMeterLevels(meterId: number): Promise<{
-    spl: number;
-    leq: number;
-    sel: number;
-    weighting: string;
-    filter: string;
-  }> {
+  async getSPLMeterLevels(meterId: number): Promise<SPLValues> {
     const response = await this.request('GET', `/spl-meter/${meterId}/levels`);
     if (response.status !== 200) {
       this.handleResponseError(response, `SPL meter ${meterId} levels`);
     }
-    return response.data as {
-      spl: number;
-      leq: number;
-      sel: number;
-      weighting: string;
-      filter: string;
-    };
+    return response.data as SPLValues;
   }
 
   /**
@@ -1303,14 +1298,36 @@ export class REWApiClient {
   }
 
   /**
-   * Set SPL meter configuration
+   * Set SPL meter configuration.
+   *
+   * Accepts the real SPLMeterConfiguration fields plus two convenience aliases,
+   * which are expanded before posting (the REW API has no `mode`/`weighting`
+   * fields, so passing them raw would be silently ignored):
+   *  - `weighting` (A/C/Z) → splWeighting + leqWeighting + selWeighting
+   *  - `mode` ('SPL'|'Leq'|'SEL') → showSPL/showLeq/showSEL
    */
-  async setSPLMeterConfig(meterId: number, config: {
-    mode?: string;
-    weighting?: string;
-    filter?: string;
-  }): Promise<boolean> {
-    const response = await this.request('POST', `/spl-meter/${meterId}/configuration`, config);
+  async setSPLMeterConfig(meterId: number, config: SPLMeterConfigInput): Promise<boolean> {
+    const body: SPLMeterConfiguration = {};
+    const rawKeys: (keyof SPLMeterConfiguration)[] = [
+      'showSPL', 'showLeq', 'showSEL', 'splWeighting', 'leqWeighting', 'selWeighting',
+      'filter', 'highPassActive', 'rollingLeqActive', 'rollingLeqMinutes'
+    ];
+    for (const key of rawKeys) {
+      if (config[key] !== undefined) {
+        (body[key] as unknown) = config[key];
+      }
+    }
+    if (config.weighting !== undefined) {
+      body.splWeighting = config.weighting;
+      body.leqWeighting = config.weighting;
+      body.selWeighting = config.weighting;
+    }
+    if (config.mode !== undefined) {
+      body.showSPL = config.mode === 'SPL';
+      body.showLeq = config.mode === 'Leq';
+      body.showSEL = config.mode === 'SEL';
+    }
+    const response = await this.request('POST', `/spl-meter/${meterId}/configuration`, body);
     return response.status === 200;
   }
 
@@ -2001,10 +2018,31 @@ export class REWApiClient {
   // ============================================================
 
   /**
-   * List available SPL meters
+   * List available SPL meters.
+   *
+   * The REW API has no meter-enumeration endpoint (the old /spl-meter/meters
+   * path returns 404); meters are addressed by id. Meter ids are contiguous
+   * from 1, so this probes /spl-meter/{id}/configuration upward until one is
+   * missing and returns the ids that exist.
    */
-  async getSPLMeters(): Promise<unknown[]> {
-    const response = await this.request('GET', '/spl-meter/meters');
+  async getSPLMeters(): Promise<Array<{ id: number }>> {
+    const meters: Array<{ id: number }> = [];
+    const maxProbe = 8;
+    for (let id = 1; id <= maxProbe; id++) {
+      const response = await this.request('GET', `/spl-meter/${id}/configuration`);
+      if (response.status !== 200) {
+        break;
+      }
+      meters.push({ id });
+    }
+    return meters;
+  }
+
+  /**
+   * Get available frequency weightings (A/C/Z). Global in the current API.
+   */
+  async getSPLMeterWeightings(): Promise<string[]> {
+    const response = await this.request('GET', '/spl-meter/weightings');
     if (response.status !== 200) {
       return [];
     }
@@ -2012,21 +2050,10 @@ export class REWApiClient {
   }
 
   /**
-   * Get available frequency weightings for a meter
+   * Get available time-weighting filters (Fast/Slow). Global in the current API.
    */
-  async getSPLMeterWeightings(meterId: number): Promise<string[]> {
-    const response = await this.request('GET', `/spl-meter/${meterId}/weightings`);
-    if (response.status !== 200) {
-      return [];
-    }
-    return Array.isArray(response.data) ? response.data : [];
-  }
-
-  /**
-   * Get available time filters for a meter
-   */
-  async getSPLMeterFilters(meterId: number): Promise<string[]> {
-    const response = await this.request('GET', `/spl-meter/${meterId}/filters`);
+  async getSPLMeterFilters(): Promise<string[]> {
+    const response = await this.request('GET', '/spl-meter/filters');
     if (response.status !== 200) {
       return [];
     }
