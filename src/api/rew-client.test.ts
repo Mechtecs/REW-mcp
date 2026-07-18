@@ -1552,4 +1552,73 @@ describe('REWApiClient', () => {
       expect(ok).toBe(false);
     });
   });
+
+  describe('RTA captured data (base64 FrequencyResponse decode)', () => {
+    it('should decode linear-spaced captured data and compute frequencies from freqStep', async () => {
+      const magnitude = [-30, -28, -26, -24];
+      server.use(
+        http.get('http://127.0.0.1:4735/rta/captured-data', () => HttpResponse.json({
+          unit: 'SPL',
+          smoothing: 'None',
+          nanotime: 123,
+          totalSamplesProcessed: 1048576,
+          startFreq: 10,
+          freqStep: 5,
+          magnitude: encodeREWFloatArray(magnitude)
+        }))
+      );
+      const client = new REWApiClient();
+      const data = await client.getRTACapturedData();
+      expect(data.unit).toBe('SPL');
+      expect(data.total_samples_processed).toBe(1048576);
+      expect(data.magnitude_db.map(v => Math.round(v))).toEqual(magnitude);
+      expect(data.frequencies_hz).toEqual([10, 15, 20, 25]);
+      expect(data.phase_degrees).toBeUndefined();
+    });
+
+    it('should decode log-spaced captured data via ppo and include phase', async () => {
+      const magnitude = [-40, -38];
+      const phase = [10, -10];
+      server.use(
+        http.get('http://127.0.0.1:4735/rta/captured-data', () => HttpResponse.json({
+          unit: 'dBFS',
+          startFreq: 100,
+          ppo: 48,
+          magnitude: encodeREWFloatArray(magnitude),
+          phase: encodeREWFloatArray(phase)
+        }))
+      );
+      const client = new REWApiClient();
+      const data = await client.getRTACapturedData();
+      expect(data.frequencies_hz[0]).toBeCloseTo(100, 5);
+      expect(data.frequencies_hz[1]).toBeCloseTo(100 * Math.pow(2, 1 / 48), 5);
+      expect(data.phase_degrees?.map(v => Math.round(v))).toEqual(phase);
+    });
+
+    it('should surface the empty-snapshot message with empty arrays', async () => {
+      server.use(
+        http.get('http://127.0.0.1:4735/rta/captured-data', () => HttpResponse.json({ message: 'There is no data' }))
+      );
+      const client = new REWApiClient();
+      const data = await client.getRTACapturedData();
+      expect(data.message).toBe('There is no data');
+      expect(data.magnitude_db).toEqual([]);
+      expect(data.frequencies_hz).toEqual([]);
+    });
+
+    it('should pass unit/index query params for captured-peak-data', async () => {
+      let capturedUrl: string | undefined;
+      server.use(
+        http.get('http://127.0.0.1:4735/rta/captured-peak-data', ({ request }) => {
+          capturedUrl = request.url;
+          return HttpResponse.json({ startFreq: 10, freqStep: 5, magnitude: encodeREWFloatArray([-20, -18]) });
+        })
+      );
+      const client = new REWApiClient();
+      const data = await client.getRTACapturedPeakData({ unit: 'SPL', index: '2' });
+      expect(capturedUrl).toContain('unit=SPL');
+      expect(capturedUrl).toContain('index=2');
+      expect(data.magnitude_db.map(v => Math.round(v))).toEqual([-20, -18]);
+    });
+  });
 });

@@ -129,6 +129,21 @@ export interface EQDefaults {
   roomCurveSettings?: EqRoomCurveSettings;
 }
 
+// Decoded RTA captured data (/rta/captured-data, /rta/captured-peak-data).
+// REW returns a FrequencyResponse whose magnitude/phase are base64 float32
+// arrays; this is the decoded, caller-friendly form. When RTA has no snapshot
+// REW returns `{ message: "There is no data" }`, surfaced via `message`.
+export interface RTACapturedData {
+  message?: string;
+  unit?: string;
+  smoothing?: string;
+  frequencies_hz: number[];
+  magnitude_db: number[];
+  phase_degrees?: number[];
+  nanotime?: number;
+  total_samples_processed?: number;
+}
+
 // REW client type (for workflow functions that accept client parameter)
 // This is a structural type, not validation - client is internal
 export interface REWClientLike {

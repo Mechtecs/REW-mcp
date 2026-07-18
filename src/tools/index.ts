@@ -204,7 +204,7 @@ export function registerTools(server: Server): void {
         {
           name: 'rew_api_rta',
           title: 'Real-Time Analyzer',
-          description: 'Control REW Real-Time Analyzer via API. Actions: start, stop, capture, reset, configure, read_levels, read_captured, read_distortion.',
+          description: 'Control REW Real-Time Analyzer via API. Actions: start, stop, capture, reset, configure, read_levels, read_captured, read_captured_peak, read_distortion. read_captured/read_captured_peak return decoded arrays { frequencies_hz, magnitude_db, phase_degrees?, unit, smoothing } (base64 float32 decoded); when RTA has no snapshot the response carries a message and empty arrays.',
           inputSchema: zodToJsonSchema(ApiRTAInputSchema)
         }
       ]

@@ -24,7 +24,8 @@ import {
   type EqualiserEntry,
   type EqTargetSettings,
   type EqRoomCurveSettings,
-  type EQDefaults
+  type EQDefaults,
+  type RTACapturedData
 } from './schemas.js';
 
 /**
@@ -2407,14 +2408,81 @@ export class REWApiClient {
   }
 
   /**
-   * Get captured RTA snapshots
+   * Decode an RTA FrequencyResponse payload (magnitude/phase are base64 float32
+   * arrays; frequencies derive from startFreq with either ppo (log) or freqStep
+   * (linear FFT bins)). Shared by captured-data and captured-peak-data.
    */
-  async getRTACapturedData(): Promise<unknown> {
-    const response = await this.request('GET', '/rta/captured-data');
-    if (response.status !== 200) {
+  private decodeRTAFrequencyResponse(data: Record<string, unknown>): RTACapturedData {
+    // REW signals an empty snapshot with a bare message and no magnitude.
+    if (typeof data.message === 'string' && data.magnitude === undefined) {
+      return { message: data.message, frequencies_hz: [], magnitude_db: [] };
+    }
+
+    const magnitude = data.magnitude
+      ? decodeREWFloatArray(data.magnitude as string)
+      : [];
+    const phase = data.phase
+      ? decodeREWFloatArray(data.phase as string)
+      : undefined;
+
+    const startFreq = data.startFreq as number | undefined;
+    const ppo = data.ppo as number | undefined;
+    const freqStep = data.freqStep as number | undefined;
+
+    let frequencies: number[] = [];
+    if (startFreq !== undefined && magnitude.length > 0) {
+      if (ppo !== undefined && ppo > 0) {
+        const logRatio = Math.log(2) / ppo;
+        frequencies = magnitude.map((_, i) => startFreq * Math.exp(i * logRatio));
+      } else if (freqStep !== undefined && freqStep > 0) {
+        frequencies = magnitude.map((_, i) => startFreq + i * freqStep);
+      }
+    }
+
+    const result: RTACapturedData = {
+      unit: data.unit as string | undefined,
+      smoothing: data.smoothing as string | undefined,
+      frequencies_hz: frequencies,
+      magnitude_db: magnitude,
+      nanotime: data.nanotime as number | undefined,
+      total_samples_processed: data.totalSamplesProcessed as number | undefined
+    };
+    if (phase) result.phase_degrees = phase;
+    return result;
+  }
+
+  /**
+   * Get the current captured RTA snapshot as decoded frequency/magnitude arrays.
+   *
+   * @param options.unit  Optional magnitude unit (spec query `unit`)
+   * @param options.index Optional capture index (spec query `index`)
+   */
+  async getRTACapturedData(options?: { unit?: string; index?: string }): Promise<RTACapturedData> {
+    const response = await this.request('GET', this.rtaCapturePath('/rta/captured-data', options));
+    if (response.status !== 200 || !response.data) {
       this.handleResponseError(response, 'RTA captured data');
     }
-    return response.data;
+    return this.decodeRTAFrequencyResponse(response.data as Record<string, unknown>);
+  }
+
+  /**
+   * Get the captured RTA peak-hold snapshot as decoded frequency/magnitude arrays.
+   */
+  async getRTACapturedPeakData(options?: { unit?: string; index?: string }): Promise<RTACapturedData> {
+    const response = await this.request('GET', this.rtaCapturePath('/rta/captured-peak-data', options));
+    if (response.status !== 200 || !response.data) {
+      this.handleResponseError(response, 'RTA captured peak data');
+    }
+    return this.decodeRTAFrequencyResponse(response.data as Record<string, unknown>);
+  }
+
+  /** Build an RTA capture path with optional unit/index query parameters. */
+  private rtaCapturePath(base: string, options?: { unit?: string; index?: string }): string {
+    const params = new URLSearchParams();
+    if (options?.unit) params.set('unit', options.unit);
+    if (options?.index) params.set('index', options.index);
+    const qs = params.toString();
+    return qs ? `${base}?${qs}` : base;
   }
 
   /**
