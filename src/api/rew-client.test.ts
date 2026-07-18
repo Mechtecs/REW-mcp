@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
-import { REWApiClient } from './rew-client.js';
+import { REWApiClient, checkApiCompatibility, SUPPORTED_API_VERSION } from './rew-client.js';
 import { REWApiError } from './rew-api-error.js';
 import { encodeREWFloatArray } from './base64-decoder.js';
 
@@ -18,6 +18,32 @@ const server = setupServer();
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
+
+describe('checkApiCompatibility', () => {
+  it('accepts the exact supported version', () => {
+    const r = checkApiCompatibility(SUPPORTED_API_VERSION);
+    expect(r.supported).toBe(true);
+    expect(r.warning).toBeUndefined();
+  });
+
+  it('accepts a patch-level difference with a note', () => {
+    const r = checkApiCompatibility('0.9.9');
+    expect(r.supported).toBe(true);
+    expect(r.warning).toContain('patch level');
+  });
+
+  it('rejects a major.minor difference', () => {
+    const r = checkApiCompatibility('1.0.0');
+    expect(r.supported).toBe(false);
+    expect(r.warning).toContain('not supported');
+  });
+
+  it('rejects a missing version', () => {
+    const r = checkApiCompatibility(undefined);
+    expect(r.supported).toBe(false);
+    expect(r.warning).toContain('Could not determine');
+  });
+});
 
 describe('REWApiClient', () => {
   describe('connect()', () => {
@@ -45,8 +71,48 @@ describe('REWApiClient', () => {
       expect(status.connected).toBe(true);
       expect(status.rew_version).toBe('5.30.9');
       expect(status.api_version).toBe('0.9.5');
+      expect(status.api_version_supported).toBe(true);
+      expect(status.compatibility_warning).toBeUndefined();
       expect(status.measurements_available).toBe(1);
       expect(status.api_capabilities.pro_features).toBe(true);
+    });
+
+    it('should flag an unsupported API version but still connect', async () => {
+      server.use(
+        http.get('http://127.0.0.1:4735/version', () => {
+          return HttpResponse.json({ message: '6.0 API 1.2.0' });
+        }),
+        http.get('http://127.0.0.1:4735/measurements', () => {
+          return HttpResponse.json({ '1': { uuid: 'u1', title: 'M1' } });
+        }),
+        http.get('http://127.0.0.1:4735/application', () => new HttpResponse(null, { status: 404 })),
+        http.get('http://127.0.0.1:4735/application/blocking', () => new HttpResponse(null, { status: 404 }))
+      );
+
+      const client = new REWApiClient();
+      const status = await client.connect();
+
+      expect(status.connected).toBe(true);
+      expect(status.api_version).toBe('1.2.0');
+      expect(status.api_version_supported).toBe(false);
+      expect(status.compatibility_warning).toContain('1.2.0');
+    });
+
+    it('should hard-fail on an unexpected /measurements response shape', async () => {
+      server.use(
+        http.get('http://127.0.0.1:4735/version', () => {
+          return HttpResponse.json({ message: '5.40 API 0.9.5' });
+        }),
+        http.get('http://127.0.0.1:4735/measurements', () => {
+          return HttpResponse.json('not-an-object');
+        })
+      );
+
+      const client = new REWApiClient();
+      const status = await client.connect();
+
+      expect(status.connected).toBe(false);
+      expect(status.error_message).toContain('Unexpected /measurements response shape');
     });
 
     it('should return error status when REW not running (connection refused)', async () => {

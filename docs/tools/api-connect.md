@@ -63,6 +63,8 @@ Returns connection status:
 - `status` - "connected" or "error"
 - `rew_version` - REW application version (e.g. "5.40 Beta 130"), parsed from the `/version` endpoint
 - `api_version` - REW REST API version (e.g. "0.9.5"), parsed from the `/version` endpoint
+- `api_version_supported` - `true` when the reported API version matches the version this client was verified against (major.minor of `0.9.5`)
+- `compatibility_warning` - Present when the API version differs from the verified one; explains that endpoints may have changed and results may be unreliable
 - `measurements_available` - Number of measurements in REW
 - `api_capabilities` - Pro features, blocking mode availability
 - `diagnostics` - Connection diagnostics (see below)

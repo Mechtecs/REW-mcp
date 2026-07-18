@@ -23,6 +23,49 @@ import {
   type InputLevels
 } from './schemas.js';
 
+/**
+ * REW REST API contract version this client was written and verified against.
+ * REW reports it via GET /version ("... API <x>") and GET /doc.json (info.version).
+ * A connection whose reported API version differs in major.minor is flagged as
+ * potentially incompatible rather than silently trusted.
+ */
+export const SUPPORTED_API_VERSION = '0.9.5';
+
+export interface ApiCompatibility {
+  supported: boolean;
+  reported?: string;
+  expected: string;
+  warning?: string;
+}
+
+/**
+ * Compare a reported REW API version against SUPPORTED_API_VERSION on the
+ * major.minor level. Patch differences are treated as compatible (with a note);
+ * a differing or missing major.minor is flagged as unsupported.
+ */
+export function checkApiCompatibility(reported?: string): ApiCompatibility {
+  const expected = SUPPORTED_API_VERSION;
+  if (!reported) {
+    return {
+      supported: false,
+      expected,
+      warning: `Could not determine the REW API version; this client targets API ${expected}. Behaviour is unverified.`
+    };
+  }
+  const mm = (v: string): string => v.split('.').slice(0, 2).join('.');
+  if (mm(reported) === mm(expected)) {
+    return reported === expected
+      ? { supported: true, reported, expected }
+      : { supported: true, reported, expected, warning: `REW API ${reported} differs from the verified ${expected} at the patch level; likely compatible.` };
+  }
+  return {
+    supported: false,
+    reported,
+    expected,
+    warning: `REW API ${reported} is not supported by this client (verified against ${expected}). Endpoints may have changed; results should be treated as unreliable.`
+  };
+}
+
 export interface REWApiConfig {
   host: string;      // Default: '127.0.0.1'
   port: number;      // Default: 4735
@@ -33,6 +76,8 @@ export interface ConnectionStatus {
   connected: boolean;
   rew_version?: string;
   api_version?: string;
+  api_version_supported?: boolean;
+  compatibility_warning?: string;
   measurements_available: number;
   api_capabilities: {
     pro_features: boolean;
@@ -300,14 +345,29 @@ export class REWApiClient {
         };
       }
 
+      const compatibility = checkApiCompatibility(apiVersion);
+
       // Current REW returns measurements as an index-keyed object; the array
       // form is a legacy/assumed shape kept for back-compat.
       const measurementData = measurementsResponse.data;
+      const measurementIsObject = measurementData != null && typeof measurementData === 'object';
+      // Hard-fail on an unexpected shape rather than silently reporting 0 measurements:
+      // a non-null primitive body means the response contract is not what we understand
+      // (most likely an incompatible REW API version).
+      if (measurementData != null && !measurementIsObject) {
+        return {
+          connected: false,
+          api_version: apiVersion,
+          api_version_supported: compatibility.supported,
+          compatibility_warning: compatibility.warning,
+          measurements_available: 0,
+          api_capabilities: { pro_features: false, blocking_mode: false },
+          error_message: `Unexpected /measurements response shape (got ${typeof measurementData}); this usually means an incompatible REW API version. Client targets API ${SUPPORTED_API_VERSION}, REW reports ${apiVersion ?? 'unknown'}.`
+        };
+      }
       const measurementCount = Array.isArray(measurementData)
         ? measurementData.length // legacy array form
-        : (measurementData && typeof measurementData === 'object'
-          ? Object.keys(measurementData).length
-          : 0);
+        : (measurementIsObject ? Object.keys(measurementData as Record<string, unknown>).length : 0);
 
       // Try to get application info (optional - the bare /application endpoint
       // was removed in current REW builds, so fall back to the parsed /version data)
@@ -326,6 +386,8 @@ export class REWApiClient {
         connected: true,
         rew_version: rewVersion,
         api_version: apiVersion,
+        api_version_supported: compatibility.supported,
+        compatibility_warning: compatibility.warning,
         measurements_available: measurementCount,
         api_capabilities: {
           pro_features: hasProFeatures,
