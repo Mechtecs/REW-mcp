@@ -1735,4 +1735,65 @@ describe('REWApiClient', () => {
       expect(createCalled).toBe(false);
     });
   });
+
+  describe('Measure configuration methods (API 0.9.5 shapes)', () => {
+    it('should read measurement level as Value { value, unit }', async () => {
+      server.use(
+        http.get('http://127.0.0.1:4735/measure/level', () => HttpResponse.json({ value: -12, unit: 'dBFS' }))
+      );
+      const client = new REWApiClient();
+      const level = await client.getMeasureLevel();
+      expect(level.value).toBe(-12);
+      expect(level.unit).toBe('dBFS');
+    });
+
+    it('should read sweep configuration with string length', async () => {
+      server.use(
+        http.get('http://127.0.0.1:4735/measure/sweep/configuration', () => HttpResponse.json({
+          startFrequency: 20, endFrequency: 20000, length: '128k', fillSilenceWithDither: false
+        }))
+      );
+      const client = new REWApiClient();
+      const cfg = await client.getSweepConfig();
+      expect(cfg.startFrequency).toBe(20);
+      expect(cfg.endFrequency).toBe(20000);
+      expect(cfg.length).toBe('128k');
+    });
+
+    it('should get sweep lengths from the configuration/sweep-lengths path', async () => {
+      let requestedUrl: string | undefined;
+      server.use(
+        http.get('http://127.0.0.1:4735/measure/sweep/configuration/sweep-lengths', ({ request }) => {
+          requestedUrl = request.url;
+          return HttpResponse.json(['64k', '128k', '1M']);
+        })
+      );
+      const client = new REWApiClient();
+      const lengths = await client.getSweepLengths();
+      expect(lengths).toEqual(['64k', '128k', '1M']);
+      expect(requestedUrl).toContain('/measure/sweep/configuration/sweep-lengths');
+    });
+
+    it('should flag proLicenseRequired on a 401 measure command', async () => {
+      server.use(
+        http.post('http://127.0.0.1:4735/measure/command', () =>
+          new HttpResponse('A Pro upgrade license is required for this action', { status: 401 }))
+      );
+      const client = new REWApiClient();
+      const result = await client.executeMeasureCommand('Measure');
+      expect(result.success).toBe(false);
+      expect(result.proLicenseRequired).toBe(true);
+      expect(result.message).toContain('Pro upgrade license');
+    });
+
+    it('should not flag proLicenseRequired on a successful async measure', async () => {
+      server.use(
+        http.post('http://127.0.0.1:4735/measure/command', () => new HttpResponse(null, { status: 202 }))
+      );
+      const client = new REWApiClient();
+      const result = await client.executeMeasureCommand('Measure');
+      expect(result.success).toBe(true);
+      expect(result.proLicenseRequired).toBe(false);
+    });
+  });
 });

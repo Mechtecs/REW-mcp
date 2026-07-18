@@ -65,6 +65,43 @@ export const SweepConfigSchema = z.object({
 
 export type SweepConfig = z.infer<typeof SweepConfigSchema>;
 
+// Sweep configuration as exposed by REW API 0.9.5
+// (GET/POST /measure/sweep/configuration → MeasSweepConfiguration).
+// Note: `length` is a string enum (e.g. "128k", "1M") from
+// /measure/sweep/configuration/sweep-lengths, not a sample count.
+export interface MeasSweepConfiguration {
+  startFrequency?: number;
+  endFrequency?: number;
+  length?: string;
+  fillSilenceWithDither?: boolean;
+}
+
+// /measure/level → Value { value, unit }
+export interface MeasureValue {
+  value?: number;
+  unit?: string;
+}
+
+// /measure/naming → MeasurementNaming
+export interface MeasurementNaming {
+  title?: string;
+  namingOption?: string;
+  nextNumber?: number;
+  numberIncrement?: number;
+  dateTimeFormat?: string;
+  prefixMeasNameWithOutput?: boolean;
+  appendLevelToMeasName?: boolean;
+}
+
+// Result of executeMeasureCommand; proLicenseRequired flags the no-Pro 401.
+export interface MeasureCommandResult {
+  success: boolean;
+  status: number;
+  message?: string;
+  data?: unknown;
+  proLicenseRequired?: boolean;
+}
+
 // Measure level schema
 export const MeasureLevelSchema = z.object({
   level: z.number().optional(),
@@ -206,13 +243,13 @@ export interface REWClientLike {
   setBlockingMode(enabled: boolean): Promise<boolean>;
   getMeasurementCount?(): Promise<number>;
   listMeasurements(): Promise<unknown[]>;
-  getMeasureLevel(): Promise<unknown>;
+  getMeasureLevel(): Promise<MeasureValue>;
   setMeasureLevel(level: number, unit?: string): Promise<boolean>;
-  getSweepConfig(): Promise<unknown>;
-  setSweepConfig(config: unknown): Promise<boolean>;
+  getSweepConfig(): Promise<MeasSweepConfiguration>;
+  setSweepConfig(config: MeasSweepConfiguration): Promise<boolean>;
   setMeasureNotes(notes: string): Promise<boolean>;
   getMeasureCommands(): Promise<string[]>;
-  executeMeasureCommand(command: string, parameters?: string[]): Promise<unknown>;
+  executeMeasureCommand(command: string, parameters?: string[]): Promise<MeasureCommandResult>;
   setGeneratorSignal(signal: string): Promise<boolean>;
   setGeneratorLevel(level: number, unit?: string): Promise<boolean>;
   executeGeneratorCommand(command: string): Promise<boolean>;

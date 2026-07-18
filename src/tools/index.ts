@@ -120,7 +120,7 @@ export function registerTools(server: Server): void {
         {
           name: 'rew_api_measure',
           title: 'Control REW Measurements',
-          description: 'Control REW measurements via API. Actions: status (get config), sweep (trigger measurement), spl (SPL measurement), cancel, configure. Note: Automated sweep measurements require REW Pro license.',
+          description: 'Control REW measurements via API. Actions: status (get config), sweep (trigger measurement), spl (SPL measurement), cancel, configure. status reports level_db (dBFS) and sweep_start_hz/sweep_end_hz plus sweep_length as a REW length string ("64k".."4M"); configure accepts the same. IMPORTANT: API-triggered measurements (sweep, spl) require a REW Pro licence. Without Pro, REW returns HTTP 401 and these actions return pro_license_required:true with a message instructing the user to run the measurement manually in REW\'s Measure dialog and then tell the assistant to continue — relay that guidance and resume once the new measurement exists.',
           inputSchema: zodToJsonSchema(ApiMeasureInputSchema)
         },
         {

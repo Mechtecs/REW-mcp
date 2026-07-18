@@ -28,7 +28,11 @@ import {
   type RTACapturedData,
   type SPLValues,
   type SPLMeterConfiguration,
-  type SPLMeterConfigInput
+  type SPLMeterConfigInput,
+  type MeasSweepConfiguration,
+  type MeasureValue,
+  type MeasurementNaming,
+  type MeasureCommandResult
 } from './schemas.js';
 
 /**
@@ -824,36 +828,43 @@ export class REWApiClient {
    * Common commands: "Measure", "SPL", "Impedance", "Cancel"
    * API expects: { command: "Measure", parameters: [] }
    */
-  async executeMeasureCommand(command: string, parameters?: string[]): Promise<{
-    success: boolean;
-    status: number;
-    message?: string;
-    data?: unknown;
-  }> {
-    const body = { 
-      command, 
-      parameters: parameters || [] 
+  async executeMeasureCommand(command: string, parameters?: string[]): Promise<MeasureCommandResult> {
+    const body = {
+      command,
+      parameters: parameters || []
     };
-    
+
     const response = await this.request('POST', '/measure/command', body);
-    
+
+    // Without a Pro licence REW rejects API-triggered measurements with HTTP 401
+    // and a plain-text body ("A Pro upgrade license is required for this action").
+    const rawMessage = typeof response.data === 'string'
+      ? response.data
+      : ((response.data as { message?: string } | undefined)?.message ?? '');
+    const proLicenseRequired =
+      response.status === 401 || /pro upgrade licen[cs]e/i.test(rawMessage);
+
     return {
       success: response.status === 200 || response.status === 202,
       status: response.status,
-      message: response.status === 202 ? 'Measurement started (async)' : undefined,
-      data: response.data
+      message: response.status === 202
+        ? 'Measurement started (async)'
+        : (proLicenseRequired ? (rawMessage || 'A Pro upgrade license is required for this action') : undefined),
+      data: response.data,
+      proLicenseRequired
     };
   }
 
   /**
-   * Get current measurement level
+   * Get current measurement level.
+   * Response is a Value { value, unit } (not { level, unit }).
    */
-  async getMeasureLevel(): Promise<{ level: number; unit: string }> {
+  async getMeasureLevel(): Promise<MeasureValue> {
     const response = await this.request('GET', '/measure/level');
     if (response.status !== 200) {
       this.handleResponseError(response, 'Measurement level');
     }
-    return response.data as { level: number; unit: string };
+    return response.data as MeasureValue;
   }
 
   /**
@@ -881,37 +892,37 @@ export class REWApiClient {
   }
 
   /**
-   * Get sweep configuration
+   * Get sweep configuration.
+   * Response is MeasSweepConfiguration { startFrequency, endFrequency,
+   * length (string, e.g. "128k"), fillSilenceWithDither }.
    */
-  async getSweepConfig(): Promise<{
-    startFreq: number;
-    endFreq: number;
-    length: number;
-    fillSilenceWithDither?: boolean;
-  }> {
+  async getSweepConfig(): Promise<MeasSweepConfiguration> {
     const response = await this.request('GET', '/measure/sweep/configuration');
     if (response.status !== 200) {
       this.handleResponseError(response, 'Sweep configuration');
     }
-    return response.data as {
-      startFreq: number;
-      endFreq: number;
-      length: number;
-      fillSilenceWithDither?: boolean;
-    };
+    return response.data as MeasSweepConfiguration;
   }
 
   /**
-   * Set sweep configuration
+   * Set sweep configuration. Body fields are startFrequency/endFrequency and a
+   * string `length` from the sweep-lengths list (see getSweepLengths).
    */
-  async setSweepConfig(config: {
-    startFreq?: number;
-    endFreq?: number;
-    length?: number;
-    fillSilenceWithDither?: boolean;
-  }): Promise<boolean> {
+  async setSweepConfig(config: MeasSweepConfiguration): Promise<boolean> {
     const response = await this.request('POST', '/measure/sweep/configuration', config);
     return response.status === 200;
+  }
+
+  /**
+   * Get the available sweep lengths (e.g. "64k", "128k", ..., "4M").
+   * Path moved to /measure/sweep/configuration/sweep-lengths; values are strings.
+   */
+  async getSweepLengths(): Promise<string[]> {
+    const response = await this.request('GET', '/measure/sweep/configuration/sweep-lengths');
+    if (response.status !== 200) {
+      return [];
+    }
+    return Array.isArray(response.data) ? response.data as string[] : [];
   }
 
   /**
@@ -926,14 +937,12 @@ export class REWApiClient {
   }
 
   /**
-   * Set measurement naming settings
+   * Set measurement naming settings.
+   * Body is MeasurementNaming { title, namingOption, nextNumber, numberIncrement,
+   * dateTimeFormat, prefixMeasNameWithOutput, appendLevelToMeasName }.
+   * (The old prefix/includeDate/includeTime fields do not exist in the API.)
    */
-  async setMeasureNaming(naming: {
-    prefix?: string;
-    includeDate?: boolean;
-    includeTime?: boolean;
-    dateTimeFormat?: string;
-  }): Promise<boolean> {
+  async setMeasureNaming(naming: MeasurementNaming): Promise<boolean> {
     const response = await this.request('POST', '/measure/naming', naming);
     return response.status === 200;
   }
@@ -1958,17 +1967,6 @@ export class REWApiClient {
   async setMeasureStartDelay(delay: unknown): Promise<boolean> {
     const response = await this.request('POST', '/measure/start-delay', delay);
     return response.status === 200;
-  }
-
-  /**
-   * Get available sweep length options
-   */
-  async getSweepLengths(): Promise<number[]> {
-    const response = await this.request('GET', '/measure/sweep/lengths');
-    if (response.status !== 200) {
-      return [];
-    }
-    return Array.isArray(response.data) ? response.data : [];
   }
 
   // ============================================================
