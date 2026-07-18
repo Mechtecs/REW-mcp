@@ -377,7 +377,7 @@ describe('REWApiClient', () => {
     it('should get audio driver', async () => {
       server.use(
         http.get('http://127.0.0.1:4735/audio/driver', () => {
-          return HttpResponse.json('CoreAudio');
+          return HttpResponse.json({ driver: 'CoreAudio' });
         })
       );
       const client = new REWApiClient();
@@ -434,7 +434,7 @@ describe('REWApiClient', () => {
     it('should get sample rate', async () => {
       server.use(
         http.get('http://127.0.0.1:4735/audio/samplerate', () => {
-          return HttpResponse.json(48000);
+          return HttpResponse.json({ value: 48000, unit: 'Hz' });
         })
       );
       const client = new REWApiClient();
@@ -456,7 +456,11 @@ describe('REWApiClient', () => {
     it('should list available sample rates', async () => {
       server.use(
         http.get('http://127.0.0.1:4735/audio/samplerates', () => {
-          return HttpResponse.json([44100, 48000, 96000]);
+          return HttpResponse.json([
+            { value: 44100, unit: 'Hz' },
+            { value: 48000, unit: 'Hz' },
+            { value: 96000, unit: 'Hz' },
+          ]);
         })
       );
       const client = new REWApiClient();
@@ -1147,11 +1151,10 @@ describe('REWApiClient', () => {
   describe('Additional audio methods', () => {
     it('should get audio status', async () => {
       server.use(
-        http.get('http://127.0.0.1:4735/audio', () => {
+        http.get('http://127.0.0.1:4735/audio/status', () => {
           return HttpResponse.json({
             enabled: true,
-            ready: true,
-            driver: 'CoreAudio'
+            ready: true
           });
         })
       );
@@ -1175,7 +1178,7 @@ describe('REWApiClient', () => {
     it('should get current Java input device', async () => {
       server.use(
         http.get('http://127.0.0.1:4735/audio/java/input-device', () => {
-          return HttpResponse.json('Built-in Microphone');
+          return HttpResponse.json({ device: 'Built-in Microphone' });
         })
       );
       const client = new REWApiClient();
@@ -1186,7 +1189,7 @@ describe('REWApiClient', () => {
     it('should get current Java output device', async () => {
       server.use(
         http.get('http://127.0.0.1:4735/audio/java/output-device', () => {
-          return HttpResponse.json('Built-in Output');
+          return HttpResponse.json({ device: 'Built-in Output' });
         })
       );
       const client = new REWApiClient();

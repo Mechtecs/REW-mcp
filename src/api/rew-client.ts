@@ -34,7 +34,15 @@ import {
   type MeasurementNaming,
   type MeasureCommandResult
 } from './schemas.js';
-import type { Signal, Value } from './generated/rew-api.js';
+import type {
+  Signal,
+  Value,
+  AudioStatus,
+  Driver,
+  Device,
+  Enable,
+  InputChannel,
+} from './generated/rew-api.js';
 
 /**
  * REW REST API contract version this client was written and verified against.
@@ -982,20 +990,12 @@ export class REWApiClient {
   /**
    * Get audio status
    */
-  async getAudioStatus(): Promise<{
-    enabled: boolean;
-    ready: boolean;
-    driver?: string;
-  }> {
-    const response = await this.request('GET', '/audio');
+  async getAudioStatus(): Promise<AudioStatus> {
+    const response = await this.request('GET', '/audio/status');
     if (response.status !== 200) {
       this.handleResponseError(response, 'Audio status');
     }
-    return response.data as {
-      enabled: boolean;
-      ready: boolean;
-      driver?: string;
-    };
+    return response.data as AudioStatus;
   }
 
   /**
@@ -1006,7 +1006,7 @@ export class REWApiClient {
     if (response.status !== 200) {
       this.handleResponseError(response, 'Audio driver');
     }
-    return response.data as string;
+    return (response.data as Driver).driver ?? '';
   }
 
   /**
@@ -1028,7 +1028,7 @@ export class REWApiClient {
     if (response.status !== 200) {
       this.handleResponseError(response, 'Sample rate');
     }
-    return response.data as number;
+    return (response.data as Value).value ?? 0;
   }
 
   /**
@@ -1039,7 +1039,9 @@ export class REWApiClient {
     if (response.status !== 200) {
       return [];
     }
-    return Array.isArray(response.data) ? response.data : [];
+    return Array.isArray(response.data)
+      ? (response.data as Value[]).map((v) => v.value ?? 0)
+      : [];
   }
 
   /**
@@ -1082,7 +1084,7 @@ export class REWApiClient {
     if (response.status !== 200) {
       this.handleResponseError(response, 'Java input device');
     }
-    return response.data as string;
+    return (response.data as Device).device ?? '';
   }
 
   /**
@@ -1103,7 +1105,7 @@ export class REWApiClient {
     if (response.status !== 200) {
       this.handleResponseError(response, 'Java output device');
     }
-    return response.data as string;
+    return (response.data as Device).device ?? '';
   }
 
   /**
@@ -1795,14 +1797,15 @@ export class REWApiClient {
     if (response.status !== 200) {
       this.handleResponseError(response, 'Java input channel');
     }
-    return response.data as number;
+    return (response.data as InputChannel).channel ?? 0;
   }
 
   /**
    * Set Java input channel
+   * API expects: { channel: <number> }
    */
   async setJavaInputChannel(channel: number): Promise<boolean> {
-    const response = await this.request('POST', '/audio/java/input-channel', channel);
+    const response = await this.request('POST', '/audio/java/input-channel', { channel });
     return response.status === 200 || response.status === 202;
   }
 
@@ -1814,14 +1817,15 @@ export class REWApiClient {
     if (response.status !== 200) {
       this.handleResponseError(response, 'Java reference input channel');
     }
-    return response.data as number;
+    return (response.data as InputChannel).channel ?? 0;
   }
 
   /**
    * Set reference input channel
+   * API expects: { channel: <number> }
    */
   async setJavaRefInputChannel(channel: number): Promise<boolean> {
-    const response = await this.request('POST', '/audio/java/ref-input-channel', channel);
+    const response = await this.request('POST', '/audio/java/ref-input-channel', { channel });
     return response.status === 200 || response.status === 202;
   }
 
@@ -1833,7 +1837,7 @@ export class REWApiClient {
     if (response.status !== 200) {
       this.handleResponseError(response, 'Java last input channel');
     }
-    return response.data as number;
+    return (response.data as InputChannel).channel ?? 0;
   }
 
   /**
@@ -1863,15 +1867,16 @@ export class REWApiClient {
     if (response.status !== 200) {
       return false;
     }
-    return response.data as boolean;
+    return (response.data as Enable).enable ?? false;
   }
 
   /**
    * Set stereo-only mode
+   * API expects: { enable: <boolean> }
    */
   async setJavaStereoOnly(stereoOnly: boolean): Promise<boolean> {
-    const response = await this.request('POST', '/audio/java/stereo-only', stereoOnly);
-    return response.status === 200;
+    const response = await this.request('POST', '/audio/java/stereo-only', { enable: stereoOnly });
+    return response.status === 200 || response.status === 202;
   }
 
   // ============================================================
