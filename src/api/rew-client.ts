@@ -369,14 +369,16 @@ export class REWApiClient {
         ? measurementData.length // legacy array form
         : (measurementIsObject ? Object.keys(measurementData as Record<string, unknown>).length : 0);
 
-      // Try to get application info (optional - the bare /application endpoint
-      // was removed in current REW builds, so fall back to the parsed /version data)
-      const appResponse = await this.request('GET', '/application');
-      const appData = appResponse.data as Record<string, unknown> | undefined;
-      const rewVersion = (appResponse.status === 200 ? (appData?.version as string) : undefined) || reportedRewVersion;
-      const hasProFeatures = appResponse.status === 200 ? ((appData?.proFeatures as boolean) || false) : false;
+      // The bare GET /application endpoint was removed in current REW builds
+      // (404 on API 0.9.5). Application/API versions now come from /version.
+      const rewVersion = reportedRewVersion;
 
-      // Check for blocking mode capability (optional)
+      // Pro features are not detectable via the REST API: API 0.9.5 exposes no
+      // pro/license/feature endpoint. Report false; a Pro-gated operation (e.g. a
+      // sweep measurement) simply fails at call time if the licence is missing.
+      const hasProFeatures = false;
+
+      // Check for blocking mode capability (GET /application/blocking → boolean).
       const blockingResponse = await this.request('GET', '/application/blocking');
       const hasBlocking = blockingResponse.status === 200;
 

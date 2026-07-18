@@ -57,9 +57,6 @@ describe('REWApiClient', () => {
             { uuid: 'test-1', name: 'Left', type: 'SPL' }
           ]);
         }),
-        http.get('http://127.0.0.1:4735/application', () => {
-          return HttpResponse.json({ version: '5.30.9', proFeatures: true });
-        }),
         http.get('http://127.0.0.1:4735/application/blocking', () => {
           return new HttpResponse(null, { status: 200 });
         })
@@ -74,7 +71,10 @@ describe('REWApiClient', () => {
       expect(status.api_version_supported).toBe(true);
       expect(status.compatibility_warning).toBeUndefined();
       expect(status.measurements_available).toBe(1);
-      expect(status.api_capabilities.pro_features).toBe(true);
+      // Pro features are not detectable via the REST API (no endpoint); always false.
+      expect(status.api_capabilities.pro_features).toBe(false);
+      // Blocking capability is derived from GET /application/blocking (200).
+      expect(status.api_capabilities.blocking_mode).toBe(true);
     });
 
     it('should flag an unsupported API version but still connect', async () => {
@@ -85,7 +85,6 @@ describe('REWApiClient', () => {
         http.get('http://127.0.0.1:4735/measurements', () => {
           return HttpResponse.json({ '1': { uuid: 'u1', title: 'M1' } });
         }),
-        http.get('http://127.0.0.1:4735/application', () => new HttpResponse(null, { status: 404 })),
         http.get('http://127.0.0.1:4735/application/blocking', () => new HttpResponse(null, { status: 404 }))
       );
 
@@ -1329,9 +1328,6 @@ describe('REWApiClient', () => {
         }),
         http.get('http://127.0.0.1:4735/measurements', () => {
           return HttpResponse.json([]);
-        }),
-        http.get('http://127.0.0.1:4735/application', () => {
-          return new HttpResponse(null, { status: 404 });
         }),
         http.get('http://127.0.0.1:4735/application/blocking', () => {
           return new HttpResponse(null, { status: 404 });

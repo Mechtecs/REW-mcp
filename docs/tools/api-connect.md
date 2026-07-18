@@ -66,7 +66,7 @@ Returns connection status:
 - `api_version_supported` - `true` when the reported API version matches the version this client was verified against (major.minor of `0.9.5`)
 - `compatibility_warning` - Present when the API version differs from the verified one; explains that endpoints may have changed and results may be unreliable
 - `measurements_available` - Number of measurements in REW
-- `api_capabilities` - Pro features, blocking mode availability
+- `api_capabilities` - Blocking mode availability (`blocking_mode`, derived from `GET /application/blocking`) and `pro_features`. **Note:** REW API 0.9.5 exposes no endpoint to query the Pro licence, so `pro_features` is always reported as `false`; a Pro-gated operation (e.g. a sweep measurement) fails at call time if the licence is missing.
 - `diagnostics` - Connection diagnostics (see below)
 
 ### Diagnostics Object
